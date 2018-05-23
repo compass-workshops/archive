@@ -1,0 +1,474 @@
+
+<style>
+.midcenter {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+}
+
+
+.footer {
+    color: black; background: #E8E8E8;
+    position: fixed; top: 90%;
+    text-align:center; width:100%;
+}
+
+
+.small-code pre code {
+  font-size: 1.2em;
+}
+
+.reveal h1, .reveal h2, .reveal h3 {
+  word-wrap: normal;
+  -moz-hyphens: none;
+}
+
+.reveal section del {
+  color: red;
+}
+</style>
+
+```{r setup, include=FALSE}
+opts_chunk$set(cache=TRUE)
+```
+
+Regression Analysis in R
+========================================================
+author: Yunkyu Sohn
+date: October 19, 2017
+width: 1500
+height: 1000
+transition: none
+
+<small> 
+Research Associate, Department of Politics
+</small>
+
+<img src="Images/PrincetonLogo.png" height="83px" width="250px" style="background-color:transparent; border:0px; box-shadow:none;"></img>
+
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/deed.en_US">Creative Commons Attribution 3.0 Unported License</a>.
+
+Workshop Preliminaries
+========================================================
+type: section
+1. Workshop Requirements
+2. Research Questions
+3. Contents for This Week
+
+1. Workshop Requirements
+========================================================
+type: sub-section
+
+Before You Begin
+========================================================
+
+1. You have access to a laptop computer and Internet Service.
+2. You have downloaded and installed R with RStudio.
+3. You have opened the link for this week's slides at the workshop website: [https://compass-workshops.github.io/info/](https://compass-workshops.github.io/info/)
+4. You have downloaded the dataset under week 5 Regression Analysis in R **Data**. 
+
+2. Research Questions
+========================================================
+type: sub-section
+
+Determinant of life expectancy in the world (World Bank dataset)
+
+![bars](Images/world.png)
+
+2. Research Questions
+========================================================
+type: sub-section
+
+Determinant of life expectancy in the world (World Bank dataset)
+
+1. Run simple regression
+2. Interpret regression table
+3. Get predicted outcomes and visualize results
+
+ - Combine your knowledge on simulation and hypothesis testing
+
+3. Contents for This Week
+========================================================
+type: sub-section
+
+Contents
+========================================================
+- Learn how to use linear regression for your data analysis and prediction 
+- **Part 1**: Linear Regression, Model and Commands: ``lm()``
+- **Part 2**: Inference with Regression Table: ``summary()``
+- **Part 3**: Prediction and Visualization: ``plot()``
+
+
+Part 1: Linear Regression, Model and Commands
+========================================================
+type: section
+
+Question 1: Why is OLS good? 
+========================================================
+type: sub-section
+- Verify unbiasedeness of estimators using simulation
+
+Load and Inspect the Dataset
+========================================================
+- Load the dataset
+
+```
+load("countries.RData")
+```
+
+- Check the variables it has 
+  - Developed: (categorized) kilowatt hours per capita
+  - Health: % government expenditures on healthcare
+  - LandArea: Size in sq. kilometers
+  - LifeExpectancy: Average life expectancy (years)
+
+```
+View(countries)
+```
+
+- ``attach()`` to avoid typing dataframe name everytime
+
+```
+attach(countries)
+```
+
+Linear Data Generating Process
+========================================================
+- Single predictor (explanatory or independent variable) case : 
+ - $Y_i=\alpha+\beta X_{i} +\epsilon_i$
+ - $Y$: outcome (response) variable
+ - $X$: predictor
+ - $\alpha$: interecept 
+ - $\beta$: coefficient
+ - $\epsilon$: unobserved error
+- A lot of **simplification** assumptions!! 
+
+![bars](Images/ols1.png)
+
+What is OLS Regression? 
+========================================================
+<img src="Images/ols1.png" width="800px"></img>
+- Ordinary Least Square regression 
+ - Find a line ($\hat{Y_i}$) with the least (sum of) squared errors
+ - no more than drawing a line with the **best possible fit**! 
+ - sum of squared errors: $\sum_i(Y_i-\hat{Y_i})^2$ where $\hat{Y_i} = \hat{\alpha}+\hat{\beta} X_{i1}$
+ - $\hat{\alpha}$: expected mean value of $Y_i$ when $X_i=0$
+ - $\hat{\beta}$: expected mean increase of $Y_i$ when there is unit increase in $X_i$
+ - = Find coefficients ($\hat{\alpha},\hat{\beta}$) with minimum $\sum_i(Y_i-\hat{Y_i})^2$
+ 
+Multiple (Multivariate) Regression
+========================================================
+- Multiple ($p$) predictor case : 
+ - $Y_i=\alpha+\beta X_{i1} +\beta_2 X_{i2} +\cdots+ \beta_p X_{ip} +\epsilon_i$ 
+ - Find a hyperplane instead of a line (e.g. for 2 predictors: simple plane)
+ - Essential for controlling for confounding variables
+ - No more than multivariate generalization of simple regression
+ - Out of scope for this workshop, but you will be able to apply/interpret by yourself after this workshop
+ 
+![bars](Images/ols2.png)
+
+
+Run Regression
+========================================================
+- Simple regression: ``lm()``
+
+```
+fit <- lm(Y ~ X, dataframe)
+fit <- lm(Y ~ X) # if used attach()
+```
+
+- Multivariate regression: ``lm()``
+
+```
+fit <- lm(Y ~ X1 + X2 + ... + Xp, dataframe)
+```
+
+- e.g. Check whether development (electricity usage per capita) predicts life expectancy
+
+```
+fit <- lm(LifeExpectancy ~ Developed)
+summary(fit)
+```
+
+Question 1: Why is OLS good? 
+========================================================
+type: sub-section
+- Verify unbiasedeness of estimators using simulation
+
+
+What is OLS Regression? 
+========================================================
+<img src="Images/ols1.png" width="600px"></img>
+- Ordinary Least Square regression 
+ - Find a line ($\hat{Y_i}$) with the least (sum of) squared errors
+ - no more than drawing a line with the best possible fit! 
+ - sum of squared errors: $\sum_i(Y_i-\hat{Y_i})^2$ where $\hat{Y_i} = \hat{\alpha}+\hat{\beta} X_{i1}$
+ - $\hat{\alpha}$: expected mean value of $Y_i$ when $X_i=0$
+ - $\hat{\beta}$: expected mean increase of $Y_i$ when there is unit  - = Find coefficients ($\hat{\alpha},\hat{\beta}$) with minimum $\sum_i(Y_i-\hat{Y_i})^2$
+ - **Very specific way** of finding the best fit with the **squarred error function**
+
+Simulate Linear Data Generating Process 
+========================================================
+type: prompt
+
+- Unbiasedness of OLS coefficient estimates: Average of OLS coefficient estimates converge to true parameters over **repeated** (hypothetical) data generating processes: $\mathop{\mathbb{E}}(\hat{\beta})=\beta$
+ - First generate predictor (X) and outcome (Y) variables with error 
+ - Estimate coefficients from X and Y
+
+Simulate Linear Data Generating Process 
+========================================================
+type: prompt
+
+- Unbiasedness of OLS coefficient estimates: Average of OLS coefficient estimates converge to true parameters over **repeated** (hypothetical) data generating processes: $\mathop{\mathbb{E}}(\hat{\beta})=\beta$
+ - First generate predictor (X) and outcome (Y) variables with error 
+ - Estimate coefficients from X and Y
+ - **R** Code Hint: 
+ 
+ 
+```
+# First generate parameters
+R <- 3000 #number of repetitions
+n <- 2000 #number of observations
+beta <- 1 #true coefficient
+boutcome <- rep(0,R) #beta estimates
+bcummean <- rep(0,R) #beta cumulative mean estimates
+``` 
+
+Simulate Linear Data Generating Process 
+========================================================
+type: prompt
+
+- Unbiasedness of OLS coefficient estimates: Average of OLS coefficient estimates converge to true parameters over **repeated** (hypothetical) data generating processes: $\mathop{\mathbb{E}}(\hat{\beta})=\beta$
+ - First generate predictor (X) and outcome (Y) variables with error 
+ - Estimate coefficients from X and Y
+ - **R** Code Hint: 
+ 
+```
+R <- 3000 #number of repetitions 
+n <- 2000 #number of observations
+beta <- 1 #true coefficient
+boutcome <- rep(0,R) #beta estimates
+bcummean <- rep(0,R) #beta cumulative mean estimates
+
+for(r in c(1:R)){
+X <- rnorm(n) #generate X
+Y <- beta * X + rnorm(n, mean = 0, sd = 0.01) #generate Y
+fit <- lm(Y ~ X) #run regression 
+boutcome[r] <- summary(fit)$coefficients[2] #beta estimates
+bcummean[r] <- mean(boutcome[1:r]) #beta cumulative mean estimates
+}
+
+plot(bcummean,xlab="Repetition",ylab="beta hat")
+lines(c(1,R),c(1,1),col='red')
+``` 
+ 
+Check-In 1: Running OLS
+========================================================
+type: alert
+
+- At this point you should have learned:
+
+ - what linear regression is. 
+ - how to use ``lm()`` command for simple and multivariate regressions.
+ - unbiasedness of OLS using simulation.
+ 
+Part 2: Inference with Regression Table
+========================================================
+type: section
+
+Question 2: Check Statistical Significance of Health Spending on Life Expectancy
+========================================================
+type: sub-section
+
+
+Interpret Regression Coefficients
+========================================================
+- Check result: ``summary(fit)``
+ - Intercept and predictor coefficients
+
+```
+summary(fit)
+```
+
+- Check coefficient estimates 
+
+```
+coefficients(fit) 
+```
+
+- Check uncertainty: ``confint(fit)``
+ - Recap we are inferring true coefficients **statistically**
+ - There always is uncertainty in our estimates 
+ 
+```
+confint(fit, level=0.95)
+```
+
+Interpret Coefficient Significance
+========================================================
+- Judging coefficient significance  = how likely the true $\beta$ equals 0
+- *t*-statistic: z-score of $\hat{\beta}$ with zero-mean normality and homoscedasticity assumptions of $\epsilon$
+ - *t*-statistic of $\hat{\beta}=\frac{\hat{\beta}-0}{\text{standard error of }\hat{\beta}}$
+
+Interpret Coefficient Significance
+========================================================
+- Judging coefficient significance  = how likely the true $\beta$ equals 0
+- *t*-statistic: z-score of $\hat{\beta}$ with zero-mean normality and homoscedasticity assumptions of $\epsilon$
+ - *t*-statistic of $\hat{\beta}=\frac{\hat{\beta}-0}{\text{standard error of }\hat{\beta}}$
+- **p-value:** ``Pr(>|t|)``: 2-sided *p*-value of *t*-statistic with null $\beta=0$
+ - if ``Pr(>|t|)``$<\alpha$, we can reject the null with $(1-\alpha)\times 100\%$ level of statistical significance.
+ - You do not have to care about degree of freedom (df) in contrast to using t-statistic directly
+ - The number of stars (*) give you information on how significant each coefficient is. 
+![bars](Images/tsat.png)
+
+Question 2: Check Statistical Significance of Health Spending on Life Expectancy
+========================================================
+type: sub-section
+
+Question 2: Check Statistical Significance of Health on LifeExpectancy
+========================================================
+type: prompt
+
+- **R** Code Hint: 
+  - Use ``lm()`` and ``summary()``
+
+- What about LandArea on LifeExpectancy?
+
+Question 2: Check Statistical Significance of Health on LifeExpectancy
+========================================================
+type: sub-section
+
+- **R** Code Hint:
+
+```
+fit <- lm(LifeExpectancy ~ Health)
+summary(fit)
+confint(fit, level=0.95)
+```
+ 
+Question 2: Check Statistical Significance of Health on LifeExpectancy
+========================================================
+type: sub-section
+
+- **R** Code Hint:
+
+```
+fit <- lm(LifeExpectancy ~ Health)
+summary(fit)
+confint(fit, level=0.95)
+```
+
+- What about LandArea on LifeExpectancy?
+
+```
+fit <- lm(LifeExpectancy ~  LandArea)
+summary(fit)
+confint(fit, level=0.95)
+``` 
+
+Check-In 2: Regression Table
+========================================================
+type: alert
+
+- At this point you should have learned:
+
+ - how to retrive regression table using ``summary()`` and ``confint()``
+ - how to interpret coefficient significance using p-value
+ 
+Part 3: Prediction and Visualization
+========================================================
+type: section
+
+Question 3: Check Statistical Significance of Health Spending on Life Expectancy Using Graph
+========================================================
+type: sub-section
+
+Fitted Line 
+========================================================
+- Recap $\hat{Y_i} = \hat{\alpha}+\hat{\beta} X_{i}$
+- Fitted values ($\hat{Y}$): ``fitted(fit)``
+
+```
+fit <- lm(LifeExpectancy ~ Health)
+fitted(fit)
+plot(Health,LifeExpectancy)
+lines(Health,fitted(fit), col="red")
+```
+
+- You can do the same by: using ``abline()``
+
+```
+plot(Health,LifeExpectancy)
+abline(fit, col="red")
+```
+
+Draw Coefficient uncertainty 
+========================================================
+- First, install and load ``visreg`` package
+
+```
+install.packages('visreg')
+require(visreg)
+```
+
+- ``visreg()`` shows you 95% confidence interval of your estimate
+
+```
+fit <- lm(LifeExpectancy ~ Developed)
+visreg(fit)
+```
+ 
+Question 3: Check Statistical Significance of Health Spending on Life Expectancy Using Graph
+========================================================
+type: sub-section
+
+Question 3: Check Statistical Significance of Health Spending on Life Expectancy Using Graph
+========================================================
+type: prompt
+- **R** Code Hint: 
+  - Use ``lm()`` and ``visreg()``
+
+- What about LandArea on LifeExpectancy?
+
+Question 3: Check Statistical Significance of Health Spending on Life Expectancy Using Graph
+========================================================
+type: prompt
+- **R** Code Hint: 
+
+```
+fit <- lm(LifeExpectancy ~ Health)
+visreg(fit)
+```
+
+- What about LandArea on LifeExpectancy?
+
+```
+fit <- lm(LifeExpectancy ~  LandArea)
+visreg(fit)
+```
+
+Recap of the Workshop
+========================================================
+type: section
+
+- At this point you should have:
+  - learned how to run linear regression using ``lm()`` 
+  - learned how to retrieve regression table ussing ``summary()``
+  - learned how to interpret regression table 
+  - learned how to visualize regression outcome using ``plot()`` and ``visreg()``
+  
+Attendance and Feedback Survey:
+========================================================
+type: section
+
+- Please fill out this survey so we know how we can improve the workshop
+
+- Link: https://docs.google.com/forms/d/e/1FAIpQLSfyuPoNw7tM_DaJ57sy7NN2tQ52WiF_pr9eZtV0rTo5zU9xvA/viewform?c=0&w=1
+
+For More Information:
+========================================================
+type: section
+
+- URL: https://compass-workshops.github.io/info/
+
+- Email List: Send an email to listserv@lists.princeton.edu with “Subscribe COMPASSWORKSHOPS” in the body and all other lines blank, including the subject

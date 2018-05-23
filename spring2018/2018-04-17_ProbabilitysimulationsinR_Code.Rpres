@@ -1,0 +1,527 @@
+
+<style>
+.midcenter {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+}
+
+
+.footer {
+    color: black; background: #E8E8E8;
+    position: fixed; top: 90%;
+    text-align:center; width:100%;
+}
+
+
+.small-code pre code {
+  font-size: 1.2em;
+}
+
+.reveal h1, .reveal h2, .reveal h3 {
+  word-wrap: normal;
+  -moz-hyphens: none;
+}
+
+</style>
+
+```{r setup, include=FALSE}
+opts_chunk$set(cache=TRUE)
+```
+
+Probability and Simulations in R
+========================================================
+author: Yunkyu Sohn
+date: April 17, 2018
+width: 1000
+height: 700
+transition: none
+
+<small> 
+Research Associate, Department of Politics
+</small>
+
+<img src="Images/PrincetonLogo.png" height="83px" width="250px" style="background-color:transparent; border:0px; box-shadow:none;"></img>
+
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/deed.en_US">Creative Commons Attribution 3.0 Unported License</a>.
+
+Workshop Preliminaries
+========================================================
+type: section
+1. Workshop Requirements
+2. Research Questions
+3. Contents for This Week
+
+1. Workshop Requirements
+========================================================
+type: sub-section
+
+Before You Begin
+========================================================
+
+1. You have access to a laptop computer and Internet Service.
+2. You have downloaded and installed R with RStudio.
+3. You have opened the link for this week's slides at the workshop website: [https://compass-workshops.github.io/info/](https://compass-workshops.github.io/info/)
+
+2. Research Questions
+========================================================
+type: sub-section
+
+Numerically solve a classicial problem in decision theory that have implications in economics and social sciences: 
+
+**Gambler's Ruin**
+
+- What do real world phenomena have in common?
+  - e.g. voting, war, or everything happens in your life
+  - One common component with gambling
+  - Stochastic (probabilistic) realization, Uncertainty
+  
+3. Contents for This Week
+========================================================
+type: sub-section
+
+Contents
+========================================================
+- Objective: Learn elementary R skills for simulating data generating processes in social sciences 
+- **Part 1**: Probabilities, Distributions and Loops
+- **Part 2**: Introducing User-defined Functions 
+
+Part 1: Probabilities, Distributions and Loops
+========================================================
+type: section
+
+Question 1: Gambler’s Ruin
+========================================================
+type: sub-section
+
+- Consequence of having a popular **EXIT** strategy in gambling?
+ 
+ ![BG](Images/BG.jpg)
+
+
+Probability
+========================================================
+- Probability: the likelihood of something happening or being the case
+- Probabilistic events: 
+ - e.g. Dropping out of school conditioned on parents' education level
+ - e.g. Legislator voting for a bill given party discipline  
+ 
+Probability Distribution
+========================================================
+- Assigned **probability profile** $\langle f(x)\rangle$ of all possible outcomes $\langle x\rangle$
++ Outcome values can be **Discrete**:  e.g. Bernoulli
+ 
+$$
+    f(x)= 
+\begin{cases}
+    p,    & \text{if } x=\text{Head}\\
+    1-p,    & \text{if } x=\text{Tail}
+\end{cases}
+$$
+  
++ Outcome values can be **Continuous**:  e.g. Gaussian (normal)
+ 
+$$
+f(x\,\vert\, \mu,\sigma^2)= \frac{1}{\sqrt{2\sigma^2\pi}}e^{-\frac{(x-\mu)^2}{2\sigma^2}}
+$$ 
+
+- Frequently observed distributions in the nature and socieities have their own names
+
+Three Types of R Functions for Probability Distributions 
+========================================================
+- Outcome is a probability mass(discrete)/density(continuous): d-
+- Outcome is  cumulative probability function value: p-
+- Outcome is the value of a random variable: r-
+
+Probability Mass/Density  VS Cumulative Probability function
+========================================================
+- e.g. pmf (pdf): Binomial distribution for observing $K$ heads when flipping a coin 10 times:
+- e.g. cmf: The likelihood that Head will appear less or equal to $K$ times when flipping an unbiased coin 10 times.
+
+  ![bars](Images/bars.png)
+  
+Caculating the Likelihoods of Events in R 
+========================================================
+- **Probability mass/density** $f(x)$ of a distribution at a value $x$
+- e.g. The likelihood that Head will appear 5 times when flipping an unbiased coin 10 times.
+- Binomial distribution: the number of times ($x$) one of the two outcomes (e.g.{Head,Tail}) takes place in $N$ repeated experiments (Head probability $p$). 
+
+```
+## dbinom(x,N,p)
+```
+```
+dbinom(5,10,0.5) 
+plot(c(1:10),dbinom(c(1:10),10,0.5)) 
+```
+
+Caculating the Cumulative Likelihoods of Events in R 
+========================================================
+- **Sum of probability mass/density** $f(x)$ values of a distribution over the range $[-\inf,x]$
+- e.g. The likelihood that Head will appear less or equal to 5 times when flipping an unbiased coin 10 times.
+
+```
+## pbinom(x,N,p)
+```
+```
+pbinom(5,10,0.5) 
+plot(c(1:10),pbinom(c(1:10),10,0.5))
+lines(c(1:10),dbinom(c(1:10),10,0.5)) 
+```
+
+Generating Probablistic Events in R 
+========================================================
+- e.g. **Simulate** the number of times Head appears when flipping a  coin 10 times.
+
+- $C$: the number of independent repetitions for the 10-time experiments 
+```
+## rbinom(C,N,p)
+```
+```
+rbinom(1,10,0.5)
+C <- 500 # increase C
+data <- rbinom(C,10,0.5) 
+hist(data)
+sum(data==5)/C
+dbinom(5,10,0.5) 
+sum(data<=5)/C
+pbinom(5,10,0.5)
+```
+
+Recap: Three Types of Functions for Probability Distributions 
+========================================================
+- Outcome is a probability mass/density (d)
+
+```
+dbinom(5,10,0.5) 
+```
+- Outcome is a cumulative probability function value (p)
+
+```
+pbinom(5,10,0.5) 
+```
+- Outcome is the value of a random variable ($r$)
+
+```
+rbinom(1,10,0.5) 
+```
+
+Recap: Loops in R
+========================================================
+
+- for loop 
+
+```
+for (t in t1:t2)
+{
+   statement
+}
+```
+- e.g.
+
+```
+for (t in 0:10)
+{
+   print(t)
+}
+```
+
+Recap: Loops in R
+========================================================
+
+- while loop 
+
+```
+while (test_expression)
+{
+   statement
+}
+```
+***
+
+  ![while](Images/while.png)
+
+Recap: Loops in R
+========================================================
+
+- while loop 
+
+```
+while (test_expression)
+{
+   statement
+}
+```
+- e.g. 
+
+```
+t<-0
+while (t<10)
+{
+   print(t)
+   t <- t+1
+}
+```
+
+Question 1: Gambler’s Ruin
+========================================================
+type: sub-section
+
+- You decided to exit a roulette game (**Winning probability** $p$ for \$1 gamble each trial) if you make a profit as much as your initial budget ($i$; total fortune ($N$) = $2\times i$) otherwise to repeat the game. 
+ - **WIN** the game if you make $i$ (i.e. total fortune ($N$) = $2\times i$) at a certain time point
+ - **LOSE** the game if you lose all the money at a certain time point
+- Q) What is your **EXPECTED** fortune? 
+
+Question 1: Gambler’s Ruin
+========================================================
+type: alert
+- **R TASK**(Run many times and average): Simulate 1000 (a large number) independent cases for $i=10,  p=0.3$ and find the average
+- Hint:
+
+```
+T <- rep(0,1000) ## #Round 
+R <- rep(10,1000) ## Total fortune
+for(c in c(1:1000)){ ## c of 1000 cases
+while(R[c]<20 & R[c]!=0){ ## EXIT condition
+r <- rbinom(1,1,0.3) ## Bernoulli
+R[c] <- R[c]+r-(1-r) ## Total fortune 
+T[c] <- T[c]+1  ## #Round
+}}
+```
+
+Question 1: Gambler’s Ruin
+========================================================
+type: sub-section
+
+- **R TASK**(Run many times and average): Simulate 1000 (a large number) independent cases for $i=10,  p=0.3$ and find the average 
+
+```
+T <- rep(0,1000) ## #Round 
+R <- rep(10,1000) ## Total fortune
+for(c in c(1:1000)){ ## c of 1000 cases
+while(R[c]<20 & R[c]!=0){ ## EXIT condition
+r <- rbinom(1,1,0.3) ## Bernoulli
+R[c] <- R[c]+r-(1-r) ## Total fortune
+T[c] <- T[c]+1  ## #Round 
+}}
+mean(R)
+hist(T)
+```
+
+Question 1: Gambler’s Ruin
+========================================================
+type: sub-section
+
+- **Closed-form solution** for expected fortune
+
+$$
+    R= 
+\begin{cases}
+    2i\times\frac{1-(\frac{1-p}{p})^i}{1-(\frac{1-p}{p})^{2i}},    & \text{if } p\neq 0.5\\
+    i,    & \text{if } p=0.5
+\end{cases}
+$$
+- Compare the following value with your numerical result: 
+
+```
+20*(1-((1-0.3)/0.3)^10)/(1-((1-0.3)/0.3)^20) 
+```
+
+Check-In 1: Probabilities, Distributions and Loops
+========================================================
+type: alert
+
+- At this point you should have:
+
+ - learned three types of R functions associated with probability distributions. 
+
+ - obtained numerical solutions of Gambler's Ruin problem using for and while loops. 
+
+Part 2: Introducing User-defined Functions 
+========================================================
+type: section
+
+User-defined Functions 
+========================================================
+- Why only use functions made by others? You can create your own, and use it repeatedly with different input values! 
+
+- We get **object** by insterting **"inp1, inp2, ... "** to the function
+
+```
+myfunction <- function(inp1, inp2, ... ){
+statements
+return(object)
+}
+```
+- You need to **RUN** the whole function definition on your R console for your system to recognize the newly created function. 
+
+Question 2: Gambler’s Ruin -General Setting-
+========================================================
+type: sub-section
+- Q) You decided to exit a roulette game (**Winning probability** $p$ of \$1 for each trial) if you reach a total fortunte of **$N$**, starting from an initial budget of $i$. 
+ - **WIN** the game if you make $N$ at a certain time point
+ - **LOSE** the game if you lose all the money at a certain time point
+- What is your **EXPECTED** fortune?  
+
+Question 2: Gambler’s Ruin -General Setting-
+========================================================
+type: alert
+- **R TASK**: Create a function with input variables $i,p$ and $N$. 
+- Hint:
+
+```
+gamble <- function(i,p,N,C){
+T <- rep(0,C) ## #Round
+R <- rep(i,C) ## total fortune
+for(c in c(1:C)){ ## c of C cases
+while(R[c]<N & R[c]!=0){ ## EXIT condition
+r <- rbinom(1,1,p) ## Bernoulli
+R[c] <- R[c]+r-(1-r) ## total fortune
+T[c] <- T[c]+1 ## #Round
+}}
+result <- list(fortune=R,time=T)
+return(result)
+}
+```
+
+Question 2: Gambler’s Ruin -General Setting-
+========================================================
+type: sub-section
+
+```
+gamble <- function(i,p,N,C){
+T <- rep(0,C) ## #Round
+R <- rep(i,C) ## total fortune
+for(c in c(1:C)){ ## c of C cases
+while(R[c]<N & R[c]!=0){ ## EXIT condition
+r <- rbinom(1,1,p) ## Bernoulli
+R[c] <- R[c]+r-(1-r) ## total fortune
+T[c] <- T[c]+1 ## #Round
+}}
+result <- list(fortune=R,time=T)
+return(result)
+}
+hist(gamble(10,0.45,30,1000)$fortune)
+hist(gamble(10,0.45,30,1000)$time)
+```
+
+Question 2.5: Take Home Quiz
+========================================================
+type: alert
+
+Question 2.5: Gambler’s Ruin -General Setting-
+========================================================
+type: sub-section
+
+- **R TASK**: Mean fortune and mean play time over $11\leq N\leq 20$ and $0.1\leq p\leq 0.9$ with $C=1000$ and $i=10$.
+
+```
+C <- 1000
+i <- 10
+F=matrix(0,10,9) ## #N by #p
+T=matrix(0,10,9) ## #N by #p 
+for(N in seq(11,20,1)){
+for(p in seq(0.1,0.9,0.1)){
+g <- gamble(i,p,N,C)
+F[N-10,p*10] <- mean(g$fortune)
+T[N-10,p*10] <- mean(g$time) }}
+plot(seq(0.1,0.9,0.1),F[1,]) ## Draw for N=11
+plot(seq(0.1,0.9,0.1),F[10,]) ## Draw for N=20
+```
+
+Question 2.5: Gambler’s Ruin -General Setting-
+========================================================
+type: sub-section
+
+- **Closed-form solution** for expected fortune
+
+$$
+    R= 
+\begin{cases}
+    N\times\frac{1-(\frac{1-p}{p})^i}{1-(\frac{1-p}{p})^{N}},    & \text{if } p\neq 0.5\\
+    i,    & \text{if } p=0.5
+\end{cases}
+$$
+
+Question 2.5: Gambler’s Ruin -General Setting-
+========================================================
+type: sub-section
+
+- **Closed-form solution** for expected fortune
+
+
+```
+C <- 1000
+i <- 10
+F0=matrix(0,10,9) ## for closed form solution
+for(N in seq(11,20,1)){
+for(p in seq(0.1,0.9,0.1)){
+if (p!=0.5){
+  F0[N-10,p*10] <- N*(1-((1-p)/p)^i)/(1-((1-p)/p)^N)
+} 
+else { 
+  F0[N-10,p*10] <- i }}}
+```
+
+Question 2.5: Gambler’s Ruin -General Setting-
+========================================================
+type: sub-section
+
+- **Closed-form solution** for expected fortune
+
+
+```
+## Draw plots to see trends 
+plot(seq(0.1,0.9,0.1),F0[1,]) ## N=11
+lines(seq(0.1,0.9,0.1),F0[1,],col='red')  
+plot(seq(0.1,0.9,0.1),F[10,]) ## N=20
+lines(seq(0.1,0.9,0.1),F0[10,],col='red')  
+```
+
+Check-In 2: User-defined Functions
+========================================================
+type: alert
+
+- At this point you should have:
+
+ - learned how to create user-defined functions 
+ - learned how to use user-defined functions to simulate data generating processes of random events
+ - learned how to demonstrate the results using base graphics 
+
+Recap of the Workshop
+========================================================
+type: section
+
+- At this point you should have:
+ - learned 3 types of R functions for probability distributions 
+ - learned how to simulate random events using R functions 
+ - created a user-defined function to solve a decision theoretic problem 
+- You are now ready to conduct advanced simulations using real datasets! 
+
+For More Information:
+========================================================
+type: section
+
+- URL: https://compass-workshops.github.io/info/
+
+- Email List: Send an email to listserv@lists.princeton.edu with “Subscribe COMPASSWORKSHOPS” in the body and all other lines blank, including the subject
+
+<!-- Question 1.5: Gambler’s Ruin  -->
+<!-- ======================================================== -->
+<!-- type: alert -->
+<!-- - Any idea for **Speeding UP**?? -->
+
+<!-- Question 1.5: Gambler’s Ruin **Speeding UP** -->
+<!-- ======================================================== -->
+<!-- type: sub-section -->
+<!-- - Q) You decided to exit a roulette game (**Winning probability** $p$ for \$1 gamble each trial) if you make a profit as same as your initial budget ($i$) otherwise repeating the game. What is your **EXPECTED** fortune?   -->
+<!--  - **WIN** the game if you make $i$  -->
+<!--  - **LOSE** the game if you lose all the money  -->
+
+<!-- - **R TASK**: Simulate 100 independent cases for $i=10,  p=0.3$ and find the average  -->
+
+<!-- ``` -->
+<!-- for(c in (1:100)){ -->
+<!-- r=r+rbinom(1,1,.1) -->
+<!-- cumsum(x) -->
+<!-- } -->
+<!-- ``` -->

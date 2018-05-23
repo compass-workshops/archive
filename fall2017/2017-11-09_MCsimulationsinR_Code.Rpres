@@ -1,0 +1,616 @@
+
+<style>
+.midcenter {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+}
+
+
+.footer {
+    color: black; background: #E8E8E8;
+    position: fixed; top: 90%;
+    text-align:center; width:100%;
+}
+
+
+.small-code pre code {
+  font-size: 1.2em;
+}
+
+.reveal h1, .reveal h2, .reveal h3 {
+  word-wrap: normal;
+  -moz-hyphens: none;
+}
+
+.reveal section del {
+  color: red;
+}
+</style>
+
+```{r setup, include=FALSE}
+opts_chunk$set(cache=TRUE)
+```
+
+Monte Carlo Simulations in R
+========================================================
+author: Yunkyu Sohn
+date: November 9, 2017
+width: 1500
+height: 1000
+transition: none
+
+<small> 
+Research Associate, Department of Politics
+</small>
+
+<img src="Images/PrincetonLogo.png" height="83px" width="250px" style="background-color:transparent; border:0px; box-shadow:none;"></img>
+
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/deed.en_US">Creative Commons Attribution 3.0 Unported License</a>.
+
+Workshop Preliminaries
+========================================================
+type: section
+1. Workshop Requirements
+2. Research Questions
+3. Contents for This Week
+
+1. Workshop Requirements
+========================================================
+type: sub-section
+
+Before You Begin
+========================================================
+
+1. You have access to a laptop computer and Internet Service.
+2. You have downloaded and installed R with RStudio.
+3. You have opened the link for this week's slides at the workshop website: [https://compass-workshops.github.io/info/](https://compass-workshops.github.io/info/)
+4. You have downloaded the dataset under Monte Carlo Simulations in R **Data**. 
+
+2. Research Questions
+========================================================
+type: sub-section
+
+Party Polarization in United States Congress
+
+![bars](Images/pol.png)
+
+2. Research Questions
+========================================================
+type: sub-section
+
+Simulate parliamentary votes using the most famous model in political science: 
+
+1. Simulate deterministic voting outcomes
+2. Simulate stochastic (probablistic) voting outcomes
+3. Apply the model to empirical ideal points of US Senators
+
+3. Contents for This Week
+========================================================
+type: sub-section
+
+Contents
+========================================================
+- Objective: Assemble things you learned during this semster to conduct simulations.  
+- **Part 1**: Deterministic voting outcomes 
+- **Part 2**: Stochastic voting outcomes using MCMC
+- **Part 3**: Generate counterfactual outcomes using empirical ideal points 
+
+Contents
+========================================================
+- Markov Chain Monte Carlo
+- First proposed by Ulam and Neumann
+
+![bars](Images/LA.jpeg)
+
+Contents
+========================================================
+- Markov Chain Monte Carlo
+- First proposed by Ulam and Neumann
+- Gambling as an anlogy to real life (nature and societies)
+ - Think of your future income as a function of your education level
+- Gamble (probabilistic/stochastic) $\neq$ exact caculation (deterministic)
+
+![bars](Images/monte.jpg)
+
+Part 1: Deterministic Voting Outcomes
+========================================================
+type: section
+
+Question 1: Spatial Model of Voting
+========================================================
+type: sub-section
+
+- Given policy preference locations of legislators and policy proposals, can we predict the politicians' voting profile? 
+  - Who will vote for **Yea**, and who will vote for **Nay**? 
+  - Which bill will pass, and which will not? 
+
+Spatial model of voting
+========================================================
+- A legislator(i.e. voter)'s utility function with her ~~bliss point~~
+
+![bars](Images/Picture1.png)
+
+Spatial model of voting
+========================================================
+- Policy options: blue and green (e.g. proposal and status quo)
+- Which one she would choose? 
+
+![bars](Images/Picture2.png)
+  
+Spatial model of voting
+========================================================
+- Policy options blue and green (e.g. proposal and status quo)
+- Which one she would choose? 
+
+![bars](Images/Picture3.png)
+  
+First Challenge
+========================================================
+- How can we **operationalize** the utility curve into a mathematical function?
+
+First Challenge
+========================================================
+- How can we **operationalize** the utility curve into a mathematical function?
+
+![bars](Images/dance1.png)
+
+First Challenge
+========================================================
+- How can we **operationalize** the utility curve into a mathematical function?
+
+![bars](Images/dance2.png)
+
+First Challenge
+========================================================
+- How can we **operationalize** the utility curve into a mathematical function?
+
+![bars](Images/dance3.png)
+
+First Challenge
+========================================================
+- How can we **operationalize** the utility curve into a mathematical function?
+
+![bars](Images/dance4.png) 
+
+First Challenge
+========================================================
+- How can we **operationalize** the utility curve into a mathematical function?
+
+![bars](Images/dance5.png)
+
+First Challenge: Rigorous Formulation
+========================================================
+- Legislator(i.e. voter) $i$'s bliss point: $x_i$
+- Bill proposal location: $b_j$
+  - Utility function $U(x_i,b_j)=-(x_i-b_j)^2$
+- Corresponding status quo location: $s_j$
+  - Utility function $U(x_i,s_j)=-(x_i-s_j)^2$
+- Vote Yea (choosing $b_j$) or Nay (choosing $s_j$)
+
+$$
+    \text{Vote }
+\begin{cases}
+   \text{Yea },    & \text{if } U(x_i,b_j) > U(x_i,s_j)\\
+   \text{Nay },    & \text{if } U(x_i,b_j) < U(x_i,s_j)
+\end{cases}
+$$
+
+Question 1: Deterministic Voting Outcome
+========================================================
+type: sub-section
+
+- Create a function with input ${x,b,s}$ and output (indicator: TRUE for Yea & FALSE for Nay). 
+- Open New R Script
+
+```
+vote1 <- function(x,b,s){
+Ub <- -(x-b)^2 ## U for choosing b
+Us <- -(x-s)^2 ## U for choosing s 
+outcome <- (Ub>Us) ## Check if Ub is larger than Us
+return(outcome) ## Output: whether b is selected instead of s
+}
+
+vote1(0.2,0.3,0.4) 
+vote1(0.2,0.5,0.4)
+```
+
+Question 1.5: Deterministic Voting Outcome for Vectors
+========================================================
+type: sub-section
+
+- Create a function for **vectors** (multiple observations) $\mathbf{x}$, $\mathbf{b}$ and $\mathbf{s}$. 
+- Open New R Script
+- **DEFINE VARIABLES**
+
+```
+vote2 <- function(x,b,s){
+N <- length(x) ## Number of legislators
+J <- length(b) ## Number of Bills
+Ub <- Us <- matrix(0,N,J) ## N by J
+outcome <- matrix(0,N,J) ## N by J
+#### ACTUAL COMPUTATIONS ####
+return(outcome)} ## Output
+```
+
+- **ACTUAL COMPUTATIONS**
+
+```
+for(i in c(1:N)){ ## Loop through legislators
+for(j in c(1:J)){ ## Loop through bills
+Ub[i,j] <- -(x[i]-b[j])^2 ## U for choosing b
+Us[i,j] <- -(x[i]-s[j])^2 ## U for choosing s 
+outcome[i,j] <- (Ub[i,j] > Us[i,j]) ## Check if Ub > Us
+}}
+```
+
+Question 1.5: Deterministic Voting Outcome for Vectors
+========================================================
+type: sub-section
+
+- Create a function for vectors $\mathbf{x}$, $\mathbf{b}$ and $\mathbf{s}$. 
+- Open New R Script
+
+```
+vote2 <- function(x,b,s){
+N <- length(x) ## Number of legislators
+J <- length(b) ## Number of Bills
+Ub <- Us <- matrix(0,N,J) ## N by J
+outcome <- matrix(0,N,J) ## N by J
+for(i in c(1:N)){
+for(j in c(1:J)){
+Ub[i,j] <- -(x[i]-b[j])^2 ## U for choosing b
+Us[i,j] <- -(x[i]-s[j])^2 ## U for choosing s 
+outcome[i,j] <- (Ub[i,j] > Us[i,j]) ## Check if Ub > Us
+}}
+return(outcome)} ## Output
+
+## Run below many times 
+vote2(c(2:4)/10,c(1:5)/10,c(3,3,3,3,3)/10)
+```
+
+Check-In 1: Simulation of Deterministic Outcomes 
+========================================================
+type: alert
+
+- At this point you should have:
+
+ - created user-defined functions for deterministic outcome simulation
+ 
+Question 2: Stochastic Voting Outcome 
+========================================================
+type: sub-section
+
+- How to incorporate idiosyncratic shocks and unobserved factors 
+
+Deterministic Voting Model
+========================================================
+- **Deterministic** Voting Model
+
+$$
+    \text{Vote }
+\begin{cases}
+   \text{Yea },    & \text{if } U(x_i,b_j) - U(x_i,s_j) > 0\\
+   \text{Nay },    & \text{if } U(x_i,b_j) - U(x_i,s_j) < 0
+\end{cases}
+$$
+
+![bars](Images/disc.png)
+
+
+Probablistic Voting Model
+========================================================
+- How to incorporate idiosyncratic shocks and unobserved factors 
+- How to reflect probablistic nature of voting
+- **Probablistic** Voting Model
+
+$$
+    \text{Vote }
+\begin{cases}
+   \text{Yea }, & \text{with Probability } F[U(x_i,b_j) - U(x_i,s_j)]\\
+   \text{Nay }, & \text{with Probability } 1 - F[U(x_i,b_j) - U(x_i,s_j)]
+\end{cases}
+$$
+
+![bars](Images/prob.png)
+
+Probablistic Voting Model
+========================================================
+- **Probablistic** Voting Model
+
+$$
+    \text{Vote }
+\begin{cases}
+   \text{Yea }, & \text{with Probability } F[U(x_i,b_j) - U(x_i,s_j)]\\
+   \text{Nay }, & \text{with Probability } 1 - F[U(x_i,b_j) - U(x_i,s_j)]
+\end{cases}
+$$
+- **Deterministic** Voting Model
+
+$$
+    \text{Vote }
+\begin{cases}
+   \text{Yea },    & \text{if } U(x_i,b_j) - U(x_i,s_j) > 0\\
+   \text{Nay },    & \text{if } U(x_i,b_j) - U(x_i,s_j) < 0
+\end{cases}
+$$
+
+Probablistic Voting Model
+========================================================
+- Specification of $F(x)$
+ - Let $F(x)$ be cumulative normal (Gaussian): 
+ 
+ ```
+ pnorm(q, mean = 0, sd = 1)
+ ```
+ 
+![bars](Images/cdf.png)
+
+Probablistic Voting Model
+========================================================
+- How would you **RELAIZE** the probablistic events?
+ - Vector of n Uniform random variables in the range [min,max]: 
+ - Default: min = 0, max = 1
+ 
+ ```
+ runif(n, min = 0, max = 1)
+ ```
+ - Use  `` runif ``  to **realize** voting outcomes 
+ 
+ ```
+ ## Compare how likely you will get TRUE
+ (pnorm(rep(10, 10)) > runif(10))
+ (pnorm(rep(0, 10)) > runif(10))
+ (pnorm(rep(-10, 10)) > runif(10))
+ ```
+ - **Remember**: higher value in the left, more likely to get TRUE
+
+Question 2: Stochastic Voting
+========================================================
+type: sub-section
+- Create a function with input ${x,b,s}$ and output (indicator: TRUE for Yea & FALSE for Nay). 
+- Recap
+ - **Probablistic** Voting Model<br>
+$$
+    \text{Vote }
+\begin{cases}
+   \text{Yea }, & \text{with Probability } F[U(x_i,b_j) - U(x_i,s_j)]\\
+   \text{Nay }, & \text{with Probability } 1 - F[U(x_i,b_j) - U(x_i,s_j)]
+\end{cases}
+$$
+
+ - **Deterministic** Voting Model<br>
+$$
+    \text{Vote }
+\begin{cases}
+   \text{Yea },    & \text{if } U(x_i,b_j) - U(x_i,s_j) > 0\\
+   \text{Nay },    & \text{if } U(x_i,b_j) - U(x_i,s_j) < 0
+\end{cases}
+$$
+
+Question 2: Stochastic Voting
+========================================================
+type: sub-section
+
+- Create a function with input ${x,b,s}$ and output (indicator: TRUE for Yea & FALSE for Nay). 
+- See **ONLY THIS LINE SHOULD BE MODIFIED!!!** for the comparison with deterministic version ``vote2(x,b,s)``
+
+```
+vote2 <- function(x,b,s){
+N <- length(x) ## Number of legislators
+J <- length(b) ## Number of Bills
+Ub <- Us <- matrix(0,N,J) ## N by J
+outcome <- matrix(0,N,J) ## N by J
+for(i in c(1:N)){
+for(j in c(1:J)){
+Ub[i,j] <- -(x[i]-b[j])^2 ## U for choosing b
+Us[i,j] <- -(x[i]-s[j])^2 ## U for choosing s 
+###### ONLY THIS LINE SHOULD BE MODIFIED!!! ###### 
+outcome[i,j] <- (Ub[i,j] > Us[i,j]) ## Check if Ub > Us
+###### ###### ###### ###### ###### ###### ###### 
+}}
+return(outcome)} ## Output
+``` 
+
+Question 2: Stochastic Voting
+========================================================
+type: sub-section
+
+- Create a function with input ${x,b,s}$ and output (indicator: TRUE for Yea & FALSE for Nay). 
+
+```
+vote3 <- function(x,b,s){
+N <- length(x) ## Number of legislators
+J <- length(b) ## Number of Bills
+Ub <- Us <- matrix(0,N,J) ## N by J
+outcome <- matrix(0,N,J) ## N by J
+for(i in c(1:N)){
+for(j in c(1:J)){
+Ub[i,j] <- -(x[i]-b[j])^2 ## U for choosing b
+Us[i,j] <- -(x[i]-s[j])^2 ## U for choosing s 
+###### ###### ###### ###### ###### ###### ###### 
+outcome[i,j] <- (pnorm(Ub[i,j]-Us[i,j]) > runif(1))
+###### ###### ###### ###### ###### ###### ###### 
+}}
+return(outcome)} ## Output
+## Compare vote2 and vote 3 by running them multiple times
+vote3(c(1:3)/10,c(1:5)/10,c(3,3,3,3,3)/10)
+vote2(c(1:3)/10,c(1:5)/10,c(3,3,3,3,3)/10)
+``` 
+
+Check-In 2: Simulation of Stochastic Outcomes 
+========================================================
+type: alert
+
+- At this point you should have:
+
+ - learned how to create stochastic outcomes using uniform random variable fuction ``runif()``
+ - created a function for probablistic voting, and simulated votes   
+
+Feedback Survey:
+========================================================
+type: section
+
+- Please fill out this survey so we know how we can improve the workshop
+
+- Link: https://docs.google.com/forms/d/e/1FAIpQLSfyuPoNw7tM_DaJ57sy7NN2tQ52WiF_pr9eZtV0rTo5zU9xvA/viewform?c=0&w=1
+
+Part 3: Generate Counterfactual Outcomes Using Empirical Ideal Points
+========================================================
+type: section
+
+Question 3: Simulate Your Own Congress Using Senate Voting Dataset
+========================================================
+type: sub-section
+
+<br>
+![bars](Images/113-congress.jpg)
+
+
+Loading the dataset
+========================================================
+- 113th Senator Ideal Points 
+
+ ```
+RCV <- read.csv("113RCV.csv")
+View(RCV)
+ ```
+
+ ```
+plot(RCV$ideology1,RCV$ideology2,col=RCV$party)
+ ```
+
+Question 3: Simulate Your Own Congress Using Senate Ideal Points
+========================================================
+type: sub-section
+
+- Generate ``bill(J,DM,RM)`` function using leading dimensional estimates (ideology1)
+ - J: number of {bill, status quo} pairs
+ - DM (RM) : mean ideal point of Democrats (Republicans)
+ 
+```
+bill <- function(J,DM,RM){
+###### ACTUAL COMPUTATIONS ###### 
+result <- list(b=b,s=s)
+return(result)}
+``` 
+
+ - Assume each bill proposal is given as a function of party mean ideology
+ 
+```
+b <- c(rep(DM,J/2),rep(RM,J/2)) ## Bill locations
+b <- c(rep(DM,J/2),rep(RM,J/2)) + rnorm(J, mean = 0, sd = 0.1) ## add Gaussian-shaped noise
+```
+
+ - Assume each status quo is given as a function of bill proposals
+ 
+```
+s <- b + rnorm(J,mean = 0, sd = 0.2) ## Status quos
+```
+
+Question 3: Simulate Your Own Congress Using Senate Ideal Points
+========================================================
+type: sub-section
+
+- Generate ``bill(J,DM,RM)`` function
+ - J: number of {bill, status quo} pairs
+ - DM (RM) : mean ideal point of Democrats (Republicans)
+ - Assume each proposal is given as a function of party mean ideology
+ - Only use the leading dimensional estimates (ideology1)
+
+```
+bill <- function(J,DM,RM){
+b <- c(rep(DM,J/2),rep(RM,J/2)) + rnorm(J, mean = 0, sd = 0.1) ## Bill locations
+s <- b + rnorm(J,mean = 0, sd = 0.4) ## Status quos
+result <- list(b=b,s=s)
+return(result)}
+
+DM <- mean(RCV$ideology1[which(RCV$party=='D')])
+RM <- mean(RCV$ideology1[which(RCV$party=='R')])
+proposals <- bill(2000,DM,RM)
+out3 <- vote3(RCV$ideology1,proposals$b,proposals$s)
+``` 
+
+Question 3.5: Verify Party Polarization
+========================================================
+type: sub-section
+
+- How likely are two legislators from same party to vote same? 
+- How likely are two legislators from different party to vote same? 
+
+```
+same <- out3 %*% t(out3) + (1-out3) %*% t(1-out3) # Number of votes casted same
+dim(same)
+```
+
+- Subset ``same`` matrix by party labels
+
+```
+Dsame <- same[which(RCV$party=='D'),which(RCV$party=='D')]
+Dsame <- Dsame[lower.tri(Dsame, diag = FALSE)]
+Rsame <- same[which(RCV$party=='R'),which(RCV$party=='R')]
+Rsame <- Rsame[lower.tri(Rsame, diag = FALSE)]
+DRsame <- same[which(RCV$party=='R'),which(RCV$party=='D')]
+```
+
+```
+par(mfrow=c(1,3));
+hist(Dsame, prob = TRUE, main="Dem", xlab="# Votes",xlim = c(900,1200))
+abline(v = median(Dsame), col = "red", lwd = 2)
+hist(Rsame, prob = TRUE, main="Rep", xlab="# Votes",xlim = c(900,1200))
+abline(v = median(Rsame), col = "red", lwd = 2)
+hist(DRsame, prob = TRUE, main="{Dem, Rep}", xlab="# Votes",xlim = c(900,1200))
+abline(v = median(DRsame), col = "red", lwd = 2)
+``` 
+
+Recap of the Workshop
+========================================================
+type: section
+
+- At this point you should have:
+  - learned the basics of MCMC simulation using the canonical voting model
+  - learned the difference between deterministic and stochastic simulations 
+  - learned how to incorporate empirical datasets for simulation 
+  - learned a way to demonstrate simulation outcomes using plots
+
+For Advanced Students
+========================================================
+type: section
+
+- Think how you can enhance the speed of your codes
+ - Replace loops with linear algebraic compuations
+ - Generate a vector (or matrix) of random variables at once 
+- For those interested in American Congressional datasets:
+ - Visit http://voteview.com/dwnl.htm
+- Check Grolemund & Wickham's new book: 
+ - Visit http://r4ds.had.co.nz/
+ 
+
+For More Information:
+========================================================
+type: section
+
+- URL: https://compass-workshops.github.io/info/
+
+- Email List: Send an email to listserv@lists.princeton.edu with “Subscribe COMPASSWORKSHOPS” in the body and all other lines blank, including the subject
+
+<!-- Question 1.5: Gambler’s Ruin  -->
+<!-- ======================================================== -->
+<!-- type: alert -->
+<!-- - Any idea for **Speeding UP**?? -->
+
+<!-- Question 1.5: Gambler’s Ruin **Speeding UP** -->
+<!-- ======================================================== -->
+<!-- type: sub-section -->
+<!-- - Q) You decided to exit a roulette game (**Winning probability** $p$ for \$1 gamble each trial) if you make a profit as same as your initial budget ($i$) otherwise repeating the game. What is your **EXPECTED** fortune?   -->
+<!--  - **WIN** the game if you make $i$  -->
+<!--  - **LOSE** the game if you lose all the money  -->
+
+<!-- - **R TASK**: Simulate 100 independent cases for $i=10,  p=0.3$ and find the average  -->
+
+<!-- ``` -->
+<!-- for(c in (1:100)){ -->
+<!-- r=r+rbinom(1,1,.1) -->
+<!-- cumsum(x) -->
+<!-- } -->
+<!-- ``` -->
