@@ -1,0 +1,1191 @@
+
+<style>
+.midcenter {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+}
+
+
+.footer {
+    color: black; background: #E8E8E8;
+    position: fixed; top: 90%;
+    text-align:center; width:100%;
+}
+
+
+.small-code pre code {
+  font-size: 1.2em;
+}
+
+.reveal h1, .reveal h2, .reveal h3 {
+  word-wrap: normal;
+  -moz-hyphens: none;
+}
+
+</style>
+
+```{r setup, include=FALSE}
+opts_chunk$set(cache=TRUE)
+```
+
+Text Mining in R
+========================================================
+author: Ethan Fosse
+date: November 30, 2017
+width: 1000
+height: 700
+transition: none
+
+<small> 
+Research Associate, Department of Sociology 
+</small>
+
+<img src="Images/PrincetonLogo.png" height="83px" width="250px" style="background-color:transparent; border:0px; box-shadow:none;"></img>
+
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/deed.en_US">Creative Commons Attribution 3.0 Unported License</a>.
+
+Workshop Preliminaries
+========================================================
+type: section
+
+1. Workshop Requirements
+2. Our Research Question
+3. Roadmap for the Workshop
+
+1. Workshop Requirements
+========================================================
+type: sub-section
+
+Before You Begin
+========================================================
+
+1. You have access to a laptop computer and Internet service
+2. You have downloaded and installed R with RStudio
+3. You have downloaded the R Workshop files:
+ + `Debate.RData` and `Voting.RData`
+4. You have installed the following R packages:
+ + `tm`, `SnowballC`, `wordcloud`, `topicmodels`
+ 
+**Go to**: [https://compass-workshops.github.io/info/](https://compass-workshops.github.io/info/)
+
+2. Our Research Question
+========================================================
+type: sub-section
+
+Political Sociology of the United States
+========================================================
+
+- In this workshop we will focus on the following questions: 
+  - **Why don't young people vote in the United States?**
+  - **What kind of rhetoric do politicians use in debates?**
+- We'll explore these questions using real data 
+- In the process of answering this question we'll learn about text analysis with R
+
+Natural versus Machine Language
+========================================================
+- Text is sometimes called **Natural Language**, so text analysis is **Natural Language Processing (NLP)**
+- This is in contrast with **Machine Language**, which consists of numbers (e.g., 1's and 0's)
+- Natural language is considerably more difficult to analyze!
+- Wild, wild west of quantitative social science
+
+4. Roadmap for the Workshop
+========================================================
+type: sub-section
+
+What We'll Learn Today
+========================================================
+
+- **Part 1**: Creating a Corpus and Cleaning Text 
+- **Part 2**: Word Frequencies and Word Clouds
+- **Part 3**: Introduction to Topic Modeling
+
+Part 1: Preprocessing Text
+========================================================
+type: section
+
+Mission #1: Why Don't Millennials Vote?
+========================================================
+type: prompt
+
+- Why don't millennials vote in the United States? Are there any important gender differences?
+- To answer this question we will use actual open-ended survey data conducted by the Harvard Institute of Politics
+
+
+Loading Data into R
+========================================================
+- Let's load `Voting.RData` into our **workspace**
+- Using RStudio's user-friendly interface:
+ 1. *File ---> Open File*
+ 2. Navigate to the location where you downloaded the files for this workshop (for example: `C:/Folder/`)
+
+- You can also try this **R Code**:
+```
+load(C:/Folder/Voting.RData)
+```
+
+Examining the Data
+========================================================
+- Let's look at our data in more depth!
+- Let's use the functions `View()`, `head()`, and `str()`
+
+- Try this **R Code**:
+
+```
+View(Voting)
+head(Voting)
+str(Voting)
+```
+- **Ask yourself**:
+ - What are the observational units of the data set? 
+ - What variables look interesting or unusual to you?
+
+Extracting the Text 
+========================================================
+- We can extract the text variable
+- Each element of the vector is a different text response
+
+- Try this **R Code**:
+
+```
+Novote <- Voting$Novote
+class(Novote)
+Novote[[1]]
+Novote[[2]]
+rm(Novote)
+```
+
+Loading and Installing the Relevant R Packages
+========================================================
+class: small-code
+
+- The main package is `tm`, which stands for "text mining"
+- Provides a number of functions for analyzing text data
+
+- Try this **R Code**:
+
+```
+install.packages("tm") # for most functions
+install.packages("SnowballC") # for stemming
+install.packages("wordcloud") # for word clouds
+install.packages("topicmodels") # for topic models
+
+library(tm, SnowballC, wordcloud)
+library(topicmodels)
+```
+
+Creating a Corpus
+========================================================
+
+- Examine the relevant variable: `Novote`
+- We need to convert this into a **corpus** (plural is **corpora**)
+- `VectorSource()` interprets each element of the input vector as a separate document
+- `Corpus()` is a set of documents containing text
+- `VCorpus` refers to a corpus from a character vector
+
+- Try this **R Code**:
+
+```
+vs <- VectorSource(Voting$Novote)
+docs <- Corpus(vs)
+print(docs)
+```
+
+Inspecting Documents 
+========================================================
+
+- Besides `print()`, we can examine the corpus using `inspect()`
+- The corpus has 7 different kinds of metadata
+
+- Try this **R Code**:
+
+```
+print(docs)
+inspect(docs)
+```
+
+Grabbing and Inspecting Individual Documents
+========================================================
+
+- Individual documents can be accessed with double brackets
+- Note: `character(0)` refers to an empty character vector
+
+- Try this **R Code**:
+
+```
+docs[[2]]
+meta(docs[[2]])
+meta(docs[[2]], "id")
+meta(docs[[2]], "language")
+```
+
+Converting a Document to a Character
+========================================================
+
+- One disadvantage of the `Corpus` class is that we can't actually see the raw output unless we apply additional transformations
+- To view the actual raw text, the `as.character()` function can be applied to the desired document
+
+- For a cleaner output, we can use the function `writeLines()`
+- Try this **R Code**:
+
+```
+docs[[2]]
+as.character(docs[[2]])
+as.character(docs[[4]])
+writeLines(as.character(docs[[2]]))
+```
+
+Converting All Documents to a Single Vector (Method #1)
+========================================================
+
+- Often we will want to convert **all** of the documents into a single character vector
+- We can create a for loop to do this task:
+
+- Try this **R Code**:
+
+```
+text <- vector()
+for(i in 1:length(docs)){
+  text[[i]] <- as.character(docs[[i]])
+}
+```
+
+Converting All Documents to a Single Vector (Method #2)
+========================================================
+
+- Instead of a for loop, we can use `lapply()`
+
+- Try this **R Code**:
+
+```
+text.list <- lapply(
+  X=docs, FUN=function(x) { 
+  as.character(x) 
+  }
+)
+
+text <- unlist(text.list)
+```
+
+Converting All Documents to a Single Vector (Method #2)
+========================================================
+
+- Instead of a for loop, we can use `lapply()`, which creates a list:
+
+```
+text.list <- lapply(
+  X=docs, FUN=function(x) { 
+  as.character(x) 
+  }
+)
+```
+- We can access individual responses (i.e., documents) using double brackets can and convert this list into a character vector using `unlist()`:
+
+```
+text.list[[2]]
+text <- unlist(text.list)
+```
+
+Converting All Documents to a Single Vector (Method #3)
+========================================================
+
+- We can also use `sapply()`, which creates a vector directly
+- Note that `sapply()` is just a wrapper (or convenience function) for `lapply()`
+
+- Try this **R Code**:
+
+```
+text <- sapply(X=docs, FUN=function(x) { 
+  as.character(x) 
+  }
+)
+
+print(text)
+```
+
+Preprocessing Text Data for Analysis
+========================================================
+- We can use the `tm_map()` function with the `tm` R package to clean up text data for analysis:
+
+```
+tm_map(x = corpus_name, FUN = function_name)
+```
+- Transformation functions (or mappings) often used with `tm_map`:
+
+Function              | What It Does
+-----------           | -----------
+`tolower()`           | transforms to lower case
+`stripWhitespace()`   | removes white space
+`removePunctuation()` | removes punctuation
+`removeNumbers()`     | removes numbers
+`removeWords()`       | removes specified words
+`stemDocument()`      | stems the words 
+
+
+Creating a Function for Converting Text
+========================================================
+class: small-code
+
+- We will examine what these functions do by comparing them with the raw text responses
+- Try this **R Code** to create a quick function:
+
+```
+convert.raw <- function(corpus){
+    corpus.raw <- sapply(X=corpus, FUN=function(x) { 
+      as.character(x) 
+    })
+  print(corpus.raw)
+}
+```
+- We can examine the raw responses using double bracket notation:
+
+```
+text.raw <- convert.raw(Voting$Novote)
+print(text.raw[[178]])
+print(text.raw[[405]])
+```
+
+Converting to Lower Case
+========================================================
+
+- We must wrap the base R function `tolower()` in the `tm` R function `content_transformer()`:
+
+```
+docs.lower <- tm_map(docs, 
+    content_transformer(tolower))
+text.lower <- convert.raw(docs.lower)
+```
+
+- Now let's compare some responses:
+
+```
+print(text.raw[[87]])
+print(text.lower[[87]])
+```
+
+Removing Unnecessary White Space
+========================================================
+
+- We will use the `tm` function `stripWhitespace()` to remove unnecessary white space from the text:
+
+
+```
+docs.strip <- tm_map(docs, stripWhitespace)
+text.strip <- convert.raw(docs.strip)
+```
+
+- Now let's compare text responses:
+
+```
+print(text.raw[[3]])
+print(text.strip[[3]])
+
+print(text.raw[[146]])
+print(text.strip[[146]])
+```
+
+Removing Punctuation
+========================================================
+class: small-code
+
+- We will use the `tm` function `removePunctuation()` to remove punctuation from the text:
+
+
+```
+docs.punc <- tm_map(docs, removePunctuation)
+text.punc <- convert.raw(docs.punc)
+```
+
+- Now let's compare text responses:
+
+```
+print(text.raw[[178]])
+print(text.punc[[178]])
+```
+
+Removing Numbers
+========================================================
+
+- We will use the `tm` function `removeNumbers()` to remove numbers from the text:
+
+
+```
+docs.numb <- tm_map(docs, removeNumbers)
+text.numb <- convert.raw(docs.numb)
+```
+
+- Now let's compare text responses:
+
+```
+print(text.raw[[146]])
+print(text.numb[[146]])
+
+print(text.raw[[76]])
+print(text.numb[[76]])
+```
+
+Introducing Stop Words
+========================================================
+
+- We will use the `tm` function `removeWords()` to remove specified words from the text
+- In general, any words removed before analyzing text are called **stop words**, but usually these refer to commonly used words such as "the", "of", "is", and so on 
+- These words are considered low-information words and are usually removed (or down-weighted) in text analyses
+- There is no single agreed-upon list of stop words!
+
+Removing Particular Words
+========================================================
+
+- We can specify the words we want to remove as a separate vector
+
+```
+stopwords <- c("the", "to")
+docs.stop <- tm_map(docs, removeWords, 
+    words=stopwords)
+text.stop <- convert.raw(docs.stop)
+```
+
+- Now let's compare text responses:
+
+```
+print(text.raw[[97]])
+print(text.stop[[97]])
+
+```
+- Note that capitalization matters, so `The` was not removed!
+
+Using a Ready-Made Set of Stop Words
+========================================================
+
+- Often researchers will use a ready-made set of stop words 
+- We can use the `tm` function `stopwords()` to specify different sets of stop words
+
+-- Try this **R Code**:
+
+```
+print(stopwords(kind = "english"))
+print(stopwords(kind = "SMART"))
+print(stopwords(kind = "german"))
+```
+
+- List of SMART stop words created by researchers at Cornell University
+
+
+Removing Pre-Specified Stop Words
+========================================================
+class: small-code
+
+- We will want to remove stop words **after** converting to lower case, since the stop word list is sensitive to capitalization
+
+```
+stopwords <- stopwords(kind="english")
+docs.lower <- tm_map(docs, content_transformer(tolower))
+docs.stop <- tm_map(docs.lower, removeWords, words=stopwords)
+text.stop <- convert.raw(docs.stop)
+```
+
+- Now let's compare text responses:
+
+```
+print(text.raw[[97]])
+print(text.stop[[97]])
+
+print(text.raw[[469]])
+print(text.stop[[469]])
+```
+
+Removing Pre-Specified and Particular Stop Words
+========================================================
+class: small-code
+
+- We will want to remove stop words **after** converting to lower case, since the stop word list is sensitive to capitalization
+
+```
+stopwords <- stopwords(kind="english")
+docs.lower <- tm_map(docs, content_transformer(tolower))
+docs.stop <- tm_map(docs.lower, removeWords, 
+    words = c(stopwords, "n/a"))
+text.stop <- convert.raw(docs.stop)
+```
+
+- Now let's compare text responses:
+
+```
+print(text.raw[[469]])
+print(text.stop[[469]])
+```
+
+Stemming Words
+========================================================
+
+- When conducting analyses, we will often want to stem words using the function `stemDocument()`
+- Note that stemming requires the R package `SnowballC`
+- This reflects the fact that, say, `running` and `run` are similar words with similar meanings
+
+```
+docs.stem <- tm_map(docs, stemDocument)
+text.stem <- convert.raw(docs.stem)
+```
+
+- Now let's compare text responses:
+
+```
+print(text.raw[[135]])
+print(text.stem[[135]])
+```
+
+Comparing the Transformations
+========================================================
+
+- Let's compare these transformations (or mappings) we've done
+
+- Try this **R Code**:
+
+```
+Voting$text.raw <- text.raw
+Voting$text.lower <- text.lower
+Voting$text.strip <- text.strip
+Voting$text.punc <- text.punc
+Voting$text.numb <- text.numb
+Voting$text.stop <- text.stop
+Voting$text.stem <- text.stem
+View(Voting)
+```
+
+Putting It Together
+========================================================
+
+1. **Creating a Corpus**: Convert a character into a set of documents (a corpus)
+2. **Preprocessing**: Convert to lower case, remove stop words, remove numbers and/or punctuation, stem the words, and strip white space
+3. **Converting to a Character**: Convert to a character vector and attach to the data set with covariates and other variables (if available)
+
+- This is by *no means* the only workflow for text data!
+- Sometimes, for example, you may not want to remove stop words, numbers, or punctuation
+
+
+Preprocessing Text Data
+========================================================
+class: small-code
+
+- Try this **R Code**:
+
+```
+# Step 1: Create a Corpus
+mydocs <- Corpus(VectorSource(Voting$Novote))
+
+# Step 2: Preprocess the Corpus
+mydocs <- tm_map(mydocs, content_transformer(tolower))
+stopwords <- c(stopwords(kind="english"), "n/a")
+mydocs <- tm_map(mydocs, removeWords, words=stopwords)
+mydocs <- tm_map(mydocs, removeNumbers)
+mydocs <- tm_map(mydocs, removePunctuation)
+mydocs <- tm_map(mydocs, stemDocument)
+mydocs <- tm_map(mydocs, stripWhitespace)
+
+# Step 3: Converting to a Character
+Voting$text.cleaned <- convert.raw(mydocs)
+View(Voting)
+```
+
+Comparing Text Responses
+========================================================
+class: small-code
+
+- We can now compare text responses by subsetting
+- Try this **R Code **:
+
+```
+group1 <- subset(Voting, Race=="Hispanic", 
+    select=c(text.cleaned, text.raw))
+group2 <- subset(Voting, Race=="Black", 
+    select=c(text.cleaned, text.raw))
+View(group1)
+View(group2)
+```
+- Tip: Use RStudio's in-built search function to look through text resopnses 
+
+- **Ask yourself**:
+  - How do the responses differ by race?
+
+
+Challenge #1: Non-Voting among Millennials
+========================================================
+type: prompt
+incremental: true
+class: small-code
+
+- Why don't millennials vote in the United States? Do you notice any gender differences?
+
+- **R Code** Hint:
+
+```
+group1 <- subset(Voting, Gender=="Female", 
+    select=c(text.cleaned, text.raw))
+group2 <- subset(Voting, Gender=="Male", 
+    select=c(text.cleaned, text.raw))
+View(group1)
+View(group2)
+```
+
+- This is qualtitative data analysis, and finding an answer is not easy!
+
+
+Check-In #1: Creating a Corpus and Cleaning Text
+========================================================
+type: alert
+
+- At this point you should have:
+ - Learned how to create a set of documents (i.e., a corpus)
+ - Cleaned text in various ways, including stemming words
+ - Compared sets of text responses using other variables (e.g., race or gender)
+
+Attendance and Feedback Survey:
+========================================================
+type: section
+
+- Please fill out this survey so we know how many people are attending!
+- Link: https://goo.gl/forms/GbNl7fhCx70IRVpi1
+
+
+Part 2: Word Frequencies and Word Clouds
+========================================================
+type: section
+
+Mission #2: Differences in Rhetoric
+========================================================
+type: prompt
+
+- How does the rhetoric of Donald Trump differ from that of Hillary Clinton? 
+- For each candidate, what other words do they tend to use with words "tax", "great", and "fair"?
+- We'll use actual data from the 1st 2016 U.S. presidential debate to help us answer this question
+
+
+Loading Debate Data into R
+========================================================
+class: small-code
+
+- Let's clean up our workspace:
+
+```
+rm(list=ls())
+gc()
+```
+
+- Let's load `Debate.RData` into our **workspace**
+- Using RStudio's user-friendly interface:
+ 1. *File ---> Open File*
+ 2. Navigate to the location where you downloaded the files for this workshop (for example: `C:/Folder/`)
+
+- You can also try this **R Code**:
+```
+load(C:/Folder/Debate.RData)
+```
+
+Examining the Data
+========================================================
+- Let's look at our data in more depth!
+- Let's use the functions `View()`, `head()`, and `str()`
+
+- Try this **R Code**:
+
+```
+View(Debate)
+head(Debate)
+str(Debate)
+```
+- Data consist of uninterrupted responses by Hillary and Trump
+- Let's create two corpora
+
+
+Creating a Function for Converting Text
+========================================================
+class: small-code
+
+- Try this **R Code** to create a quick function:
+
+```
+convert.raw <- function(corpus){
+    corpus.raw <- sapply(X=corpus, FUN=function(x) { 
+      as.character(x) 
+    })
+  print(corpus.raw)
+}
+```
+- You need this function when processing the `Debate.RData` data set
+
+
+Creating a Trump Corpus
+========================================================
+class: small-code
+
+- Try this **R Code** (this may take some time so please be patient): 
+
+```
+# Step 1: Creating a Corpus
+Trump <- subset(Debate, Speaker=="Trump")
+trumpdocs <- Corpus(VectorSource(Trump$Text))
+
+# Step 2: Preprocess the Corpus
+trumpdocs <- tm_map(trumpdocs, content_transformer(tolower))
+stopwords <- c(stopwords(kind="english"), "trump")
+trumpdocs <- tm_map(trumpdocs, removeWords, words=stopwords)
+trumpdocs <- tm_map(trumpdocs, removeNumbers)
+trumpdocs <- tm_map(trumpdocs, removePunctuation)
+trumpdocs <- tm_map(trumpdocs, stemDocument)
+trumpdocs <- tm_map(trumpdocs, stripWhitespace)
+
+# Step 3: Convert to a Character (Optional)
+trump.cleaned <- convert.raw(trumpdocs)
+writeLines(trump.cleaned)
+```
+
+Creating a Clinton Corpus
+========================================================
+class: small-code
+
+- Try this **R Code** (this may take some time so please be patient): 
+
+```
+# Step 1: Creating a Corpus
+Clinton <- subset(Debate, Speaker=="Clinton")
+clintondocs <- Corpus(VectorSource(Clinton$Text))
+
+# Step 2: Preprocess the Corpus
+clintondocs <- tm_map(clintondocs, content_transformer(tolower))
+stopwords <- c(stopwords(kind="english"), "clinton")
+clintondocs <- tm_map(clintondocs, removeWords, words=stopwords)
+clintondocs <- tm_map(clintondocs, removeNumbers)
+clintondocs <- tm_map(clintondocs, removePunctuation)
+clintondocs <- tm_map(clintondocs, stemDocument)
+clintondocs <- tm_map(clintondocs, stripWhitespace)
+
+# Step 3: Convert to a Character (Optional)
+clinton.cleaned <- convert.raw(clintondocs)
+writeLines(clinton.cleaned)
+```
+
+Representing Text as a Document-Term Matrix
+========================================================
+
+- Our goal is to summarize the text data in terms of frequencies (or counts)
+- A common representation is as a **Document-Term Matrix**, in which the rows are documents, the columns are different terms (or words), and each cell is the number of counts a particular term appears in a particular document
+- A **Term-Document Matrix** is identical except the rows are terms (or words) and the columns are documents
+- R's `tm` package allows us to use a variety of functions on a document-term matrix
+
+
+Creating a Document-Term Matrix for Trump
+========================================================
+
+- We can create a document-term matrix for Trump and then run several kinds of operations
+
+- Try this **R Code**
+
+```
+trump.dtm <- DocumentTermMatrix(trumpdocs)
+print(trump.dtm)
+inspect(trump.dtm)
+trump.dtm.mat <- as.matrix(trump.dtm)
+trump.dtm.mat[1:5, 1:5]
+```
+
+Creating a Document-Term Matrix for Clinton
+========================================================
+
+- We can create a document-term matrix for Clinton and then run several kinds of operations
+
+- Try this **R Code**
+
+```
+clinton.dtm <- DocumentTermMatrix(clintondocs)
+print(clinton.dtm)
+inspect(clinton.dtm)
+clinton.dtm.mat <- as.matrix(clinton.dtm)
+clinton.dtm.mat[1:5, 1:5]
+```
+
+Finding Frequent Terms
+========================================================
+
+- We can use the function `findFreqTerms()` on a document-term matrix to find the most commonly-used words by Trump and Clinton
+- The option `lowfreq` specifies the lowest number of counts we want to print out (e.g., `lowfreq=5` means we will only show terms if they occur at least 5 times in the corpus)
+
+- Try this **R Code**:
+
+```
+findFreqTerms(trump.dtm, lowfreq=10)
+findFreqTerms(clinton.dtm, lowfreq=10)
+```
+
+
+Finding Associations Between Terms
+========================================================
+- A document-term matrix can be used to find correlations with other terms
+- Highly correlated terms tend to occur together
+- Try this **R Code**:
+
+```
+findAssocs(trump.dtm, terms = "job", 
+  corlimit = 0.4)
+findAssocs(clinton.dtm, terms = "job", 
+  corlimit = 0.4)
+```
+
+- What are the associations with "clinton" in Trump's document-term matrix? 
+- What are the associations with "trump" in Clinton's document-term matrix?
+
+Including Counts with Frequent Terms
+========================================================
+class: small-code
+
+- A problem with the `findFreqTerms()' function is that it doesn't actually give the counts! 
+
+- Try this **R Code** for Trump:
+
+```
+m.trump <- as.matrix(trump.dtm)
+v.trump <- sort(colSums(m.trump), decreasing=TRUE)
+d.trump <- data.frame(word = names(v.trump), 
+    freq=v.trump)
+head(d.trump, 20)
+```
+
+- Try this **R Code** for Clinton:
+
+```
+m.clinton <- as.matrix(clinton.dtm)
+v.clinton <- sort(colSums(m.clinton), decreasing=TRUE)
+d.clinton <- data.frame(word = names(v.clinton),
+    freq=v.clinton)
+head(d.clinton, 20)
+```
+
+Bar Plots of Frequent Terms
+========================================================
+class:small-code
+
+- Try this **R Code**:
+
+```
+barplot(height=d.trump[1:10,]$freq, las = 2, 
+        names.arg = d.trump[1:10,]$word,
+        col ="red", horiz=FALSE,
+        main ="Most Common Words (Trump)",
+        ylab = "Word Frequencies")
+
+barplot(height=d.clinton[1:10,]$freq, las = 2, 
+        names.arg = d.clinton[1:10,]$word,
+        col ="blue", horiz=FALSE,
+        main ="Most Common Words (Clinton)",
+        ylab = "Word Frequencies")
+```
+- Note: `las=2` specifies labels perpendicular to the axis
+
+Creating Word Clouds
+========================================================
+class: small-code
+
+- We can use the`wordcloud()` function with the package `wordcloud`
+- Try this **R Code**:
+
+```
+set.seed(1234)
+wordcloud(words = d.trump$word, 
+    freq = d.trump$freq, min.freq = 5,
+    random.order=FALSE, 
+    colors=brewer.pal(9, "Reds"))
+
+wordcloud(words = d.clinton$word, 
+    freq = d.clinton$freq, min.freq = 5,
+    random.order=FALSE, 
+    colors=brewer.pal(9, "Blues"))
+```
+
+Changing Colors
+========================================================
+- Word clouds can be colored using the R package `RColorBrewer`
+- Many color palettes are possible
+- To visualize a particular R Color Brewer palettes, try the following **R Code**:
+
+```
+display.brewer.pal(n=8, name="Blues") 
+```
+- To visualize all R Color Brewer palettes, use the following:
+
+```
+display.brewer.all(type="all")
+```
+
+Challenge #2: Trump vs. Clinton
+========================================================
+type: prompt
+incremental: true
+
+- Examine the rhetoric used by Trump and Clinton in their first debate 
+- For each candidate, what other words do they tend to use with words "tax", "great", and "fair"?
+
+- **R Code** Hint:
+
+```
+findAssocs(trump.dtm, terms = "fair", 
+  corlimit = 0.5)
+findAssocs(clinton.dtm, terms = "fair", 
+  corlimit = 0.5)
+```
+
+Check-In #2: Word Frequencies and Word Clouds
+========================================================
+type: alert
+
+- At this point you should have:
+ - Learned how to create a document-term matrix 
+ - Calculated word frequencies and associations between words
+ - Visualized text data using word clouds and bar plots
+
+
+Part 3: Introduction to Topic Modeling
+========================================================
+type: section
+
+Mission #3: Topics in Clinton Corpus
+========================================================
+type: prompt
+
+- What are the underlying topics (or themes) in Trump's 1st debate?
+- We will continue to use the data we've used thus far
+
+Intuition Behind Topic Modeling
+========================================================
+
+- **Latent Dirichlet allocation (LDA)** is a method that automatically "discovers" topics (or themes) in a set of documents
+- The basic idea is that you specify a number of topics beforehand, and each document considered to be a mixture of all the topics
+- **Each topic** contains all words in the corpus, but some words have higher probabilities than others
+- **Each document** contains all topics, but within each document some topics have a higher probability than others
+- For a general introduction, see Blei (2012): https://www.cs.princeton.edu/~blei/papers/Blei2012.pdf
+
+Steps to Creating a Topic Model
+========================================================
+
+1. Create a corpus
+2. Preprocess the corpus
+3. Convert to a document-term matrix of counts
+4. Remove documents with no term counts
+5. Specify the number of topics
+6. Run the topic model
+7. Find the most likely terms for each topic
+8. Find the most likely topics for each document
+9. Interpret the results (and possibly re-fit the model using a new number of k topics)
+
+- We will use the R package `topicmodels`
+
+Step 1: Create a Corpus
+========================================================
+
+- We will use `Debate.RData` and subset to Trump
+- Try this **R Code**:
+
+```
+Trump <- subset(Debate, Speaker=="Trump")
+trumpdocs <- Corpus(VectorSource(Trump$Text))
+```
+
+Step 2: Preprocess the Corpus
+========================================================
+class: small-code
+
+- Try this **R Code**:
+
+```
+trumpdocs <- tm_map(trumpdocs, content_transformer(tolower))
+stopwords <- c(stopwords(kind="english"), "trump")
+trumpdocs <- tm_map(trumpdocs, removeWords, words=stopwords)
+trumpdocs <- tm_map(trumpdocs, removeNumbers)
+trumpdocs <- tm_map(trumpdocs, removePunctuation)
+trumpdocs <- tm_map(trumpdocs, stemDocument)
+trumpdocs <- tm_map(trumpdocs, stripWhitespace)
+```
+
+Step 3: Convert to Document-Term Matrix
+========================================================
+- Try this **R Code**:
+
+```
+trump.dtm <- DocumentTermMatrix(trumpdocs) 
+print(trump.dtm)
+```
+
+Step 4: Remove all Documents without Words
+========================================================
+class: small-code
+
+- The topic models R package requires that each document have at least one word in the document-term matrix
+- We will add up the number of words in each document and remove all documents with a zero sum
+- Try this **R Code**:
+
+```
+# find the sum of words in each document:
+rowTotals <- apply(X=trump.dtm, MARGIN=1, FUN=sum) 
+
+# remove all docs without words:
+trump.dtm.nonzero <- trump.dtm[rowTotals> 0, ] 
+
+# examine new document-term matrix:
+print(trump.dtm.nonzero)
+print(trump.dtm)
+```
+
+Step 5: Specify the Number of Topics
+========================================================
+
+- The number of topics is usually referred to as `k`
+- How many topics should we specify?
+- In general, there is no foolproof method for specifying the number of topics
+- We will set `k = 10` for now
+
+Step 6: Run the Topic Model
+========================================================
+
+- The most basic topic model uses the latent Dirichlet allocation (LDA) algorithm, in which each document is assumed to be a mixture of topics
+- In R we can use the `LDA()` function to run a topic model
+- Try this **R Code**:
+
+```
+lda <- LDA(trump.dtm.nonzero, k = 10) 
+```
+
+Step 7: Find the most likely terms for each topic
+========================================================
+
+- We can find the top 5 most likely terms for each topic using the `get_terms()` function, which is part of the `LDA` package
+
+- Try this **R Code**:
+
+```
+get_terms(lda, 5)
+```
+- How to intepret the topics? 
+- It can be very much like reading tea leaves!
+
+Step 8: Find the most likely topics for each document
+========================================================
+- Each document is a mixture of topics
+- We can use the function `get_topics()` to find the most likely topics for each document
+- We will specify the top topics for each document
+- Try this **R Code**:
+
+```
+get_topics(lda, 2)
+```
+
+Step 8: Find the most likely topics for each document (cont.)
+========================================================
+class: small-code
+
+- We can link each document to a most likely topic
+
+- Try this **R Code**:
+
+```
+# find most likely topics:
+Topic <- as.numeric(get_topics(lda, 1))
+# remove all docs without words:
+trump.text.nonzero <- Trump$Text[rowTotals > 0] 
+
+# creating a data frame of the results:
+results <- as.data.frame(Topic)
+results$Text <- trump.text.nonzero
+results <- results[order(results$Topic), ]
+
+# viewing the output
+View(results)
+writeLines(results$Text[[31]])
+
+```
+
+Step 9: Interpret and Re-Fit the Model
+========================================================
+
+- Often researchers will spend a great deal of time interpreting the topics
+- In practice you should vary the number of topics you specify (i.e., change the value of `k`)
+- Other advances in topic models include the inclusion of covariates (i.e., predictor variables)
+  - For example, see the `stm` R package
+
+
+Challenge #3: Finding Topics 
+========================================================
+type: prompt
+incremental: true
+
+- What are some of the underlying topics (or themes) discussed by Trump in the 1st debate? 
+- Try specifying `k=20` or some other value other than 10
+
+- **R Code** Hint:
+
+```
+lda <- LDA(trump.dtm.nonzero, k = 20)
+get_terms(lda, 5)
+```
+
+Recap of the Workshop
+========================================================
+type: section
+
+- At this point you should have:
+ - Examined word frequencies, associations, and clouds
+ - Learned about document-term matrices
+ - Explored topic modeling
+ 
+
+For More Information:
+========================================================
+type: section
+
+URL: [https://compass-workshops.github.io/info/](https://compass-workshops.github.io/info/)
+
+Email List: Send an email to listserv@lists.princeton.edu with "Subscribe COMPASSWORKSHOPS" in the body and all other lines blank, *including the subject*
+
+
+COMPASS Workshops
+========================================================
+title: false
+
+<img src="Images/COMPASSLogo.png" height="168px" width="900px" style="background-color:transparent; border:0px; box-shadow:none;"></img>
+
+- Free, open-source statistical programming and data analysis workshops using R and RStudio
+- Open to everyone with a Princeton ID
+- No programming experience is necessary or expected 
+- Attendees should bring a laptop computer to fully participate in the workshops
+
+
+Our Website
+========================================================
+
+URL: [https://compass-workshops.github.io/info/](https://compass-workshops.github.io/info/)
+
+<img src="Images/COMPASSWebsite.png" height="497px" width="900px"></img>
+
+
+Our Mailing List
+========================================================
+left: 60%
+
+
+<div class="midcenter" style="margin-left:-490px; margin-top:-250px;">
+<img src="Images/COMPASSEmail.png" height="454px" width="490px"></img>
+</div>
+
+*** 
+
+<div>
+Send an email to listserv@lists.princeton.edu with "Subscribe COMPASSWORKSHOPS" in the body and all other lines blank, *including the subject*.
+</div>
+
+People
+========================================================
+
+- **Teaching Staff**
+ - [Ethan Fosse](http://scholar.harvard.edu/ethanfosse/) (Research Associate, Department of Sociology)
+ - [Yunkyu Sohn](http://www.ysohn.com/) (Research Associate, Department of Politics)
+
+- **Faculty Sponsors**
+ - [Margaret Frye](http://scholar.princeton.edu/mfrye/) (Assistant Professor, Department of Sociology)
+ - [Kosuke Imai](http://imai.princeton.edu/) (Professor, Department of Politics)
+ - [Matthew Salganik](http://www.princeton.edu/~mjs3/) (Professor, Department of Sociology)

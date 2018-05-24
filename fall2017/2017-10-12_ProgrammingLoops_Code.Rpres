@@ -1,0 +1,920 @@
+
+<style>
+.midcenter {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+}
+
+
+.footer {
+    color: black; background: #E8E8E8;
+    position: fixed; top: 90%;
+    text-align:center; width:100%;
+}
+
+
+.small-code pre code {
+  font-size: 1.2em;
+}
+
+.reveal h1, .reveal h2, .reveal h3 {
+  word-wrap: normal;
+  -moz-hyphens: none;
+}
+
+</style>
+
+```{r setup, include=FALSE}
+opts_chunk$set(cache=TRUE)
+```
+
+Programming Loops in R
+========================================================
+author: Ethan Fosse
+date: October 12, 2017
+width: 1000
+height: 700
+transition: none
+
+<small> 
+Research Associate, Department of Sociology 
+</small>
+
+<img src="Images/PrincetonLogo.png" height="83px" width="250px" style="background-color:transparent; border:0px; box-shadow:none;"></img>
+
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/deed.en_US">Creative Commons Attribution 3.0 Unported License</a>.
+
+Workshop Preliminaries
+========================================================
+type: section
+
+1. Workshop Requirements
+2. Our Research Question
+3. Roadmap for the Workshop
+
+1. Workshop Requirements
+========================================================
+type: sub-section
+
+Before You Begin
+========================================================
+
+1. You have access to a laptop computer and Internet service
+2. You have downloaded and installed R with RStudio
+3. You have downloaded the R Workshop files:
+ + `World.RData`
+
+**Go to**: [https://compass-workshops.github.io/info/](https://compass-workshops.github.io/info/)
+
+2. Our Research Question
+========================================================
+type: sub-section
+
+Happiness in the World
+========================================================
+
+- Throughout this workshop we will consider the following question:
+ - **What explains happiness across countries?**
+- We'll explore this question using real data 
+- In the process of answering this question we'll learn about programming with R
+
+4. Roadmap for the Workshop
+========================================================
+type: sub-section
+
+What We'll Learn Today
+========================================================
+
+- **Part 1**: For Loops in R
+- **Part 2**: Conditional Statements in R
+- **Part 3**: The apply Family of Functions
+- **Addendum 1**: Programming with dplyr
+- **Addendum 2**: Aggregating with dplyr
+
+Part 1: For Loops in R
+========================================================
+type: section
+
+Mission #1: Happiness Levels in the World
+========================================================
+type: prompt
+
+- What are the happiness levels for all the countries in the world? 
+- We'll use data to answer this question!
+
+
+Loading Data into R
+========================================================
+- Let's load `World.RData` into our **workspace**
+- Using RStudio's user-friendly interface:
+ 1. *File ---> Open File*
+ 2. Navigate to the location where you downloaded the files for this workshop (for example: `C:/Folder/`)
+
+- You can also try this **R Code**:
+```
+load(C:/Folder/World.RData)
+```
+
+Examining the Data
+========================================================
+- Let's look at our data in more depth!
+- Let's use the function `View()` and `head()`
+- Try this **R Code**:
+
+```
+View(World)
+head(World)
+```
+- **Ask yourself**:
+ - What are the observational units of the data set? 
+ - What variables look interesting or unusual to you?
+
+What are Loops?
+========================================================
+
+- A **loop** is just a way of conducting a sequence of instructions under certain conditions
+- Loops help save a lot of time, since data analysis often entails repeating a task
+- Examples: 
+ - Using an individual-level data set, what's the average income for 50 U.S. states?
+ - How do I take the average of 20 random samples from a population and create a histogram?
+
+Three Main Types of Loops
+========================================================
+
+- There are three main kinds of loops
+- **For loops**: loops that execute a command a specified number of times, as controlled by an index (or counter)
+- **While loops**: loops that are based on some logical condition that is tested at the start 
+- **Repeat loops**: loops that are based on some logical condition that is tested at the end
+- We will focus on using for loops, which are by far the most common for data analysis
+
+
+Generic Format: For Loops
+========================================================
+class: small-code
+
+- Basic structure of a **for loop**:
+
+```
+for (i in X) {
+  expression1
+  expression2
+  ...
+  expressionN
+}
+```
+
+- We repeat the commands (or expressions) from `expression1` to `expressionN` for each value `i` in the vector `X`
+- Here `i` is the looper counter and the number of iterations is `N`
+- This is best understood by doing!
+
+creating a Basic Loop
+========================================================
+
+- Recall the basic structure of a for loop
+
+- Try this R code:
+
+```
+for(i in 2:4) {
+    print(i)
+}
+```
+
+Creating an Object within a Loop
+========================================================
+
+- Try this R code:
+
+```
+for(i in c(1, 3, 6, 9)) {
+    z <- i + 1
+}
+
+print(z)
+```
+
+
+
+Creating a Nice Print-Out of Results
+========================================================
+
+```
+for(i in c(1, 3, 6, 9)) {
+    z <- i + 1
+    cat("Iteration", i, "and z is", z, "\n")
+}
+
+print(z)
+```
+
+Using a Non-Numeric Index
+========================================================
+
+- Note that the index does not have to contain numbers:
+
+```
+cars <- c("Toyota", "Ford", "Chevy")
+for(j in cars) {
+    cat("Iteration:", j, "\n")
+}
+```
+
+Creating a Fake Mini-Dataset
+========================================================
+% class: small-code
+
+- Try this R code:
+
+```
+df <- data.frame(brand = as.factor(c("Toyota","Ford","Chevy","Ford")),
+  cost = c(10, 15, 13, 24), foreign = as.factor(c("F","D","D","D")))
+```
+- Examining the dataset:
+
+```
+str(df)
+dim(df)
+```
+
+Creating a Separate Index
+========================================================
+% class: small-code
+
+- When working with datasets, it's common to create a separate vector for the index (or loop counter)
+- Our Question: what is the average cost of each car?
+
+- Creating the index:
+
+```
+index <- 1:nrow(df)
+# or: index <- c(1,2,3,4)
+```
+
+- Running the for loop:
+
+```
+for(i in index){
+  print(df[i, "cost"])
+}
+```
+
+Altering the Elements in the Index
+========================================================
+% class: small-code
+
+- Our Question: what is the average cost of the 1st, 3rd, and 4th cars in the dataset?
+
+- Creating the index:
+
+```
+index <- c(1,3,4)
+```
+
+- Running the for loop:
+
+```
+for(i in index){
+  print(df[i, "cost"])
+}
+```
+
+Storing the Results from a Loop
+========================================================
+% class: small-code
+
+- Often it's also useful to store the values from a loop
+- Our Question: what is the average cost for foreign vs. domestic cars?
+- Creating an index and empty vector in which to store our results:
+
+```
+index <- c(1,2,3,4)
+results <- rep(NA, times=length(index))
+```
+
+- Try this R code:
+
+```
+for(i in index){
+  results[i] <- df[i, "cost"]
+}
+print(results)
+```
+
+Debugging Code
+========================================================
+class: small-code
+
+- How to debug? Manually set the index to see what's going on
+
+```
+index <- c(1,2,3,4)
+results <- rep(NA, times=length(index))
+for(i in index){
+  results <- df[i, "cost"]
+}
+print(results)
+```
+
+- E.g., examining the results when `i` equals 1:
+
+```
+  i <- 1
+  results <- df[i, "cost"]
+  print(results)
+```
+
+- Now try setting `i` to a different value and see what happens
+
+
+Using Real Data: What is the Population Level for Each Country?
+========================================================
+class: small-code
+
+- Try this R code:
+
+```
+index <- nrow(World)
+results <- rep(NA, times=index)
+for(i in (1:index)){
+  # print(World[i, "Population"])
+  results[i] <- World[i, "Population"]
+}
+print(results)
+```
+- Sorting results to see highest population:
+
+```
+sort(results, decreasing=TRUE)
+```
+
+Challenge #1: Happiness Across Countries
+========================================================
+type: prompt
+incremental: true
+class: small-code
+
+- What are the happiness levels for each of the countries in the world?
+
+- **R Code** Hint:
+
+```
+index <- nrow(World)
+results <- rep(NA, times=index)
+for(i in (1:index)){
+  # print(World[i, "Happiness"])
+  results[i] <- World[i, "Happiness"]
+}
+print(results)
+sort(results, decreasing=TRUE)
+```
+
+Check-In #1: Basics of For Loops
+========================================================
+type: alert
+
+- At this point you should have:
+ - Learned about the 3 main kinds of loops in R
+ - Used loops to print and store a sequence of operations
+ - Created a for loop with real data
+
+Part 2: Using Conditional Statements
+========================================================
+type: section
+
+Mission #2: Miserable Countries
+========================================================
+type: prompt
+
+- How many countries are "miserable" around the world?
+
+
+The ifelse Function
+========================================================
+% class: small-code
+
+- We use the ifelse function when we need to do something if a condition is true and something else if it is false
+- Generic format:
+
+```
+ifelse(condition, if condition is TRUE then do this, if condition is NOT TRUE then do this)
+```
+- Example:
+
+```
+df$Test <- ifelse(df$cost==10, "Cost is 10", "Cost is not 10")
+print(df)
+```
+
+Using ifelse to Create a Binary Cost Variable 
+========================================================
+% class: small-code
+
+- We can use the ifelse function to recode variables
+- Generic format:
+
+```
+ifelse(condition, if condition is TRUE then do this, if condition is NOT TRUE then do this)
+```
+- Example:
+
+```
+df$CostBinary <- as.factor(ifelse(df$cost<=15, "Cheap", "Expensive"))
+print(df)
+```
+
+Using ifelse to Create a Binary Happiness Variable
+========================================================
+% class: small-code
+
+- Let's use the ifelse command to create a binary variable for the happiness variable in the World dataset
+- Examining the happiness variable:
+
+```
+range(World$Happiness)
+mean(World$Happiness)
+median(World$Happiness)
+```
+- Creating a new binary variable
+
+```
+World$Happy <- as.factor(ifelse(World$Happiness<6, "Miserable", "Happy"))
+table(World$Happy)
+```
+
+Using the General if Statement
+========================================================
+
+- The basic ifelse function is most useful for creating binary variables
+- A more powerful command is the `if(){}` function (we will later cover the `if(){}else{}` function)
+
+The genetic form of the `if(){}` function is:
+
+```
+if (X) {
+  expression1
+  expression2
+  ...
+  expressionN
+}
+```
+
+- If the value of `X` is TRUE, then the code chunk `expression1` to `expressionN` will be executed
+- If the value of `X` is FALSE, then the code chunk will be skipped entirely
+
+Example: Using the General if Statement
+========================================================
+
+- Try this R code:
+
+```
+operation <- "add"
+if (operation == "add"){
+  cat("I will perform addition 8 + 2 \n")
+  8 + 2
+}
+```
+- Now try:
+
+```
+if (operation == "multiply"){
+  cat("I will perform multiplication 8 * 2 \n")
+  8 * 2
+}
+```
+- What happens if we create `operation <- "multiply"`?
+
+
+Using the General ifelse Statement
+========================================================
+class: small-code
+
+- Generic format:
+
+```
+if (X) {
+  expression1a
+  expression2a
+  ...
+  expressionNa
+} else {
+  expression1b
+  expression2b
+  ...
+  expressionNb
+}
+```
+- If the value of `X` is TRUE, then the code chunk `expression1a` to `expressionNa` will be executed
+- If the value of `X` is FALSE, then the code chunk `expression1b` to `expressionNb` will be executed
+
+Example: Using the General ifelse Statement
+========================================================
+
+- Try this R code:
+
+```
+operation <- "multiply"
+if (operation == "add"){
+  cat("I will perform addition 8 + 2 \n")
+  8 + 2
+} else {
+cat("I will perform multiplication 8 * 2 \n")
+  8 * 2
+}
+```
+
+Example: Summarizing with an ifelse Statement
+========================================================
+
+- Try this R code:
+
+```
+myvar <- World$Population
+vartype <- class(myvar)
+if (vartype == "numeric"){
+  cat("The average is", mean(myvar), "\n")
+} else {
+  cat("The class is", vartype, "\n")
+}
+```
+
+- What happens if you use a different variable from the dataset?
+
+Using Multiple ifelse Statements
+========================================================
+
+- Try the following R code:
+
+``` 
+operation <- "subtract"
+if (operation == "add"){
+    cat("I will perform addition 8 + 2 \n")
+    8 + 2
+  } else if (operation == "multiply") {
+  cat("I will perform multiplication 8 * 2 \n")
+    8 * 2
+  } else {
+    cat("This program can only do addition or multiplication.")
+}
+
+```
+
+Example: Summarizing with Multiple ifelse Statements
+========================================================
+
+- Try this R code:
+
+```
+myvar <- World$Happy
+vartype <- class(myvar)
+if (vartype == "numeric" | vartype == "integer"){
+  cat("The average is", mean(myvar), "\n")
+} else if (vartype == "factor"){
+  cat("The level", levels(myvar)[1], "has", table(myvar)[1],"observations \n")
+  } else {
+  cat("The class is", vartype, "\n")
+}
+```
+
+Using Conditionals in a For Loop
+========================================================
+
+- Try this R code:
+
+
+```
+varnames <- colnames(World)
+for(i in 1:ncol(World)){
+myvar <- World[, i]
+vartype <- class(myvar)
+if (vartype == "numeric"){
+    cat("The average of", varnames[i], "is", mean(myvar), "\n")
+    hist(myvar, main=varnames[i])
+  } else {
+    cat("The class of", varnames[i], "is", vartype, "\n")
+  }
+}
+```
+
+
+Challenge #2: Miserable Countries
+========================================================
+type: prompt
+incremental: true
+class: small-code
+
+- How many countries are "miserable" around the world?
+
+- **R Code** Hint:
+
+```
+myvar <- World$Happy
+vartype <- class(myvar)
+if (vartype == "numeric" | vartype == "integer"){
+  cat("The average is", mean(myvar), "\n")
+} else if (vartype == "factor"){
+  cat("The level", levels(myvar)[2], "has", table(myvar)[2],"observations \n")
+  } else {
+  cat("The class is", vartype, "\n")
+}
+```
+
+Check-In #2: Using Conditional Statements
+========================================================
+type: alert
+
+- At this point you should have:
+ - Learned about the ifelse command for creating binary variables
+ - Worked with general if and ifelse programming statements
+ - Created a basic program to analyze data based on variable types
+
+Part 3: The apply Family of Functions
+========================================================
+type: section
+
+Mission #3: Development and Happiness
+========================================================
+type: prompt
+
+- Do "happy" or "miserable" countries have a higher human development index (HDI)?
+
+
+
+Simplifying Loops and Conditional Statements
+========================================================
+class: small-code
+
+- For loops and conditional statements could be used to conduct any number of manipulations on a dataset
+- In practice, however, it is considerably easier to use a set of convenience functions known as the "apply" functions
+- These are like loops in that we *apply* functions repeatedly -- just in a few lines of code
+- We will focus on the "apply" and "tapply" commands
+
+The apply Command
+========================================================
+
+- Generic form: 
+
+```apply(X, MARGIN, FUN)```
+
+- `X` is a matrix
+- `MARGIN` is a variable defining how the function is applied: when MARGIN=1, it applies over rows, whereas with MARGIN=2, it works over columns
++ Note that when you use the construct `MARGIN=c(1,2)`, it applies to both rows and columns
+- `FUN`, which is the function that you want to apply to the data 
+
+
+Using apply on a Matrix
+========================================================
+
+- Creating a matrix:
+
+```
+mat <- as.matrix(World[ , c("HDI", "Population","Happiness")])
+dim(mat)
+class(mat)
+```
+
+- Applying a function
+
+```
+apply(X=mat, MARGIN=2, FUN=mean)
+apply(X=mat, MARGIN=2, FUN=median)
+apply(X=mat, MARGIN=2, function (x) length(unique(x)))
+```
+- Last command gives the number of unique values for each column
+
+Using the tapply Command
+========================================================
+
+- The tapply comand is used when we need to break up a vector into groups defined by some classifying variable, compute a function on the subsets, and return the results in a convenient form
+- Generic form:
+
+```apply(X, INDEX, FUN)```
+
+- Here `INDEX` refers to the classifying variable
+
+- Try this R Code:
+
+```
+tapply(World$Population, World$Happy, mean)
+```
+
+Challenge #3: Development and Happiness
+========================================================
+type: prompt
+incremental: true
+class: small-code
+
+- Do "happy" or "miserable" countries have a higher human development index (HDI)?
+
+- **R Code** Hint:
+
+```
+tapply(X=World$HDI, INDEX=World$Happy, FUN=mean)
+```
+
+Check-In #3: The apply Family of Functions
+========================================================
+type: alert
+
+- At this point you should have:
+ - Learned about the apply family of functions
+ - Used the general apply function on a matrix
+ - Used the tapply function to summarize one variable by levels of another variable
+ 
+Addendum 1: Programming with dplyr
+========================================================
+type: section
+
+Mission for Addendum #1: Which Countries are Happiest?
+========================================================
+type: prompt
+
+- Which countries are the happiest?
+- To answer this question, we'll use the dplyr package
+
+Subsetting Both Observations and Variables
+========================================================
+class: small-code
+
+- Install the `dplyr` package
+- Try this R code:
+
+```
+filter(World, Happiness > 5)
+filter(World, Happiness > 7)
+select(World, Happiness, Region)
+```
+
+Selecting both rows and columns with nesting
+========================================================
+
+- Install the `dplyr` package
+
+- Try this R code:
+```
+filter(select(World, Happiness, Region), Happiness > 5)
+```
+
+Introducing the %>% Operator
+========================================================
+class: small-code
+
+- Can be interpreted as "then"
+- Try this R code:
+
+```
+World %>% select(HDI, Happiness, Region) %>% filter(Happiness > 5)
+```
+Helper Functions for select()
+========================================================
+class: small-code
+
+-	`contains()`: select columns containing a character string: 
+- `select(World, contains("United"))`
+
+- `starts_with()`: select columns with names starting in a character string: 
+- `select(World, starts_with("Reg"))`
+
+- `ends_with()`: select columns with names ending in a character string: 
+- `select(World, ends_with("DI"))`
+
+
+Challenge for Addendum #1: Happy Countries
+========================================================
+type: prompt
+incremental: true
+
+- Which countries are happiest among those countries with a population above 20 million? How about those below 20 million?
+
+- **R Code** Hint:
+
+```
+World %>% select(HDI, Population, Country, Happiness, Region) %>% filter(Happiness > 5 & Population < 20)
+
+```
+- Is this finding surprising to you?
+
+Check-In for Addendum #1: Programming with dplyr
+========================================================
+type: alert
+
+- At this point you should have:
+ - Learned about subsetting with filter and select
+ - Examined how this compares with conventional subsettting techniques
+
+
+Addendum #2: Aggregating with dplyr
+========================================================
+type: section
+
+Mission for Addendum #2: Life Expectancy by Region
+========================================================
+type: prompt
+
+- What is the average life expectancy by region?
+- We will use real data again!
+
+Aggregating Data with Base R
+========================================================
+
+- Recall this R Code
+
+```
+tapply(X=World$Happiness, INDEX=World$Region, FUN=mean)
+```
+
+Using dplyr
+=======================================================
+
+- Now with dplyr!
+- Try this R Code
+
+```
+World %>%  group_by(Region) %>% summarise(MeanHDI = mean(HDI))
+```
+Challenge for Addendum #2: Life Expectancy by Region
+========================================================
+type: prompt
+incremental: true
+
+- What is the life expectancy by region?
+
+- **R Code** Hint:
+
+```
+World %>%  group_by(Region) %>% summarise(MeanLife = mean(LifeExpectancy))
+
+```
+- Is this finding surprising to you?
+
+
+Recap of the Workshop
+========================================================
+type: section
+
+- At this point you should have:
+ - Created for loops
+ - Constructed conditional statements
+ - Learned about the apply family of functions
+
+Feedback Survey:
+========================================================
+type: section
+
+- Please fill out this survey so we know how we can improve the workshop
+- Link: https://goo.gl/forms/GbNl7fhCx70IRVpi1
+
+For More Information:
+========================================================
+type: section
+
+URL: [https://compass-workshops.github.io/info/](https://compass-workshops.github.io/info/)
+
+Email List: Send an email to listserv@lists.princeton.edu with "Subscribe COMPASSWORKSHOPS" in the body and all other lines blank, *including the subject*
+
+
+COMPASS Workshops
+========================================================
+title: false
+
+<img src="Images/COMPASSLogo.png" height="168px" width="900px" style="background-color:transparent; border:0px; box-shadow:none;"></img>
+
+- Free, open-source statistical programming and data analysis workshops using R and RStudio
+- Open to everyone with a Princeton ID
+- No programming experience is necessary or expected 
+- Attendees should bring a laptop computer to fully participate in the workshops
+
+Our Website
+========================================================
+
+URL: [https://compass-workshops.github.io/info/](https://compass-workshops.github.io/info/)
+
+<img src="Images/COMPASSWebsite.png" height="497px" width="900px"></img>
+
+
+Our Mailing List
+========================================================
+left: 60%
+
+
+<div class="midcenter" style="margin-left:-490px; margin-top:-250px;">
+<img src="Images/COMPASSEmail.png" height="454px" width="490px"></img>
+</div>
+
+*** 
+
+<div>
+Send an email to listserv@lists.princeton.edu with "Subscribe COMPASSWORKSHOPS" in the body and all other lines blank, *including the subject*.
+</div>
+
+People
+========================================================
+
+- **Teaching Staff**
+ - [Ethan Fosse](http://scholar.harvard.edu/ethanfosse/) (Research Associate, Department of Sociology)
+ - [Yunkyu Sohn](http://www.ysohn.com/) (Research Associate, Department of Politics)
+
+- **Faculty Sponsors**
+ - [Margaret Frye](http://scholar.princeton.edu/mfrye/) (Assistant Professor, Department of Sociology)
+ - [Kosuke Imai](http://imai.princeton.edu/) (Professor, Department of Politics)
+ - [Matthew Salganik](http://www.princeton.edu/~mjs3/) (Professor, Department of Sociology)
