@@ -1,0 +1,1177 @@
+
+<style>
+.midcenter {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+}
+
+
+.footer {
+    color: black; background: #E8E8E8;
+    position: fixed; top: 90%;
+    text-align:center; width:100%;
+}
+
+
+.small-code pre code {
+  font-size: 1.2em;
+}
+
+.reveal h1, .reveal h2, .reveal h3 {
+  word-wrap: normal;
+  -moz-hyphens: none;
+}
+
+</style>
+
+```{r setup, include=FALSE}
+opts_chunk$set(cache=TRUE)
+```
+
+Interemdiate Graphics with ggplot2
+========================================================
+author: Ethan Fosse
+date: March 8, 2017
+width: 1000
+height: 700
+transition: none
+
+<small> 
+Research Associate, Department of Sociology 
+</small>
+
+<img src="Images/PrincetonLogo.png" height="83px" width="250px" style="background-color:transparent; border:0px; box-shadow:none;"></img>
+
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/deed.en_US">Creative Commons Attribution 3.0 Unported License</a>.
+
+Workshop Preliminaries
+========================================================
+type: section
+
+1. Workshop Requirements
+2. Installing and loading ggplot2
+3. Our Research Question
+4. Roadmap for the Workshop
+
+Two-Part Workshop
+========================================================
+type: sub-section
+
+- This is essentially a two-part workshop 
+- In Part 1 (March 1) we covered the basic commands of ggplot, which are bundled into the `qplot()` function (which stands for "quick plot")
+- In Part 2 (March 8) we are reviewing more advanced functions in ggplot, which allow for greater flexibility when creating visualizations
+
+1. Workshop Requirements
+========================================================
+type: sub-section
+
+Before You Begin
+========================================================
+
+1. You have access to a laptop computer and Internet service
+2. You have downloaded and installed R with RStudio
+3. You have downloaded the R Workshop files:
+ + `States.RData`
+ + `ggplot2part2.html`
+
+**Go to**: [https://compass-workshops.github.io/info/](https://compass-workshops.github.io/info/)
+
+2. Installing and Loading ggplot2
+========================================================
+type: sub-section
+
+Installing Packages in RStudio
+========================================================
+
+- To install R packages in RStudio: GUI versus R Console
+- 1. Using the GUI: Go to the `Packages` tab and click `Install`
+- 2. Using the R Console: `install.packages("package_name")`
+ - `package_name` is just the name of the R package in quotes
+ -  Try this **R Code**: `install.packages("ggplot2")`
+
+Loading an R Package For Use
+========================================================
+
+- Once you've installed an R package, it's then bundled with R and RStudio
+- You now have access to all of the functions, data, code, and other files associated with the installed R package
+- However, to access these files you must load your R package
+ - Try this **R Code**: `library(ggplot2)`
+- You only have to install an R package once, but you must load it every time you start R
+
+
+3. Our Research Question
+========================================================
+type: sub-section
+
+The 2008 Presidential Election
+========================================================
+
+![Obama and McCain](Images/ObamaMcCainFaces.png)
+
+The Electoral College Map
+========================================================
+
+![Obama and McCain Map](Images/ObamaMcCainMap.png)
+
+Examining the Election of 2008
+========================================================
+
+- Throughout this  workshop we will consider the following question:
+ - **Why did some states go for Obama and others for McCain?**
+- We'll explore this question using real data on 50 states
+- In the process of answering this question we'll learn about visualizing data using the main `ggplot()` function in the ggplot2 package
+
+4. Roadmap for the Workshop
+========================================================
+type: sub-section
+
+What We'll Learn Today
+========================================================
+
+- **Part 1**: The Grammar of Graphics
+- **Part 2**: Bar, Line, and Dot Plots
+- **Part 3**: Histograms, Box Plots, and Density Plots 
+- **Part 4**: Scatter Plots and Overlaid Lines
+- **Part 5**: Advanced Topics
+
+Part 1: The Grammar of Graphics
+========================================================
+type: section
+
+Mission #1: College Graduates and Voting for McCain
+========================================================
+type: prompt
+
+* What is the relationship between the percent who graduated from college and the percent who voted for McCain in the 2008 presidential election in the United States?
+* To answer this question we'll use an actual dataset from the 2008 election
+
+Loading Data into R
+========================================================
+- Let's load `States.RData` into our **workspace**
+- Using RStudio's user-friendly interface:
+ 1. *File ---> Open File*
+ 2. Navigate to the location where you downloaded the files for this workshop (for example: `C:/Folder/`)
+
+- You can also try this **R Code**:
+```
+load(C:/Folder/States.RData)
+```
+
+Viewing the Data as a Spreadsheet
+========================================================
+- Let's look at our data in more depth!
+- Let's use the function `View()`
+- Try this **R Code**:
+
+```
+View(States)
+```
+- **Ask yourself**:
+ - What are the observational units of the data set? 
+ - What variables look interesting or unusual to you?
+
+Introducing the Grammar of Graphics
+========================================================
+
+- ggplot2 stands for Grammar of Graphics
+- The idea behind ggplot2 is that it breaks down plotting into a set of distinct inputs
+- There are two main functions in ggplot2: `qplot()` and `ggplot()`
+- Last week we focused on `qplot()`, which stands for "quick plot"
+- This week we will focus on using the `ggplot()` function, which offers greater flexibility (i.e., more customization) than the `qplot()` function
+
+
+Using ggplot2 in R
+========================================================
+class: small-code
+
+- The `ggplot()` function has three main components:
+1. **data**
+2. **aesthetic mappings** between variables in the data and visual features
+3. **layer(s)** that describe how to render each data point
+  - `geom`: the actual visualization of the data (such as `point` or `line`)
+  - `facet`: optional splitting (or "faceting") into subplots
+  - `stat`: any statistical summaries to be applied 
+
+- Best understood with an example!
+
+Example: Creating a Scatterplot
+========================================================
+class: small-code
+
+- A basic example using`ggplot()`:
+
+```
+ggplot(data=States, aes(x=NonWhite, y=McCainVote)) +
+  geom_point()
+```
+
+1. **data**: `data=States`
+2. **aesthetic mappings**: `aes(x=NonWhite, y=McCainVote)`
+3. **layer(s)**: `+ geom_point()`
+
+- the data and aesthetic mappings are within the `ggplot()` function
+- each layer is added using a plus symbol: `+`
+
+Aesthetic Attributes: Scaled vs. Fixed
+========================================================
+class: small-code
+
+- Aesthetic attributes include color, shape, size
+- Aesthetic attributes may be **scaled** to a variable in your dataset or **fixed** to a particular value
+- If scaling the aesthetic attributes, then include within the `aes()` function either in the initial `ggplot()` call or within a particular layer
+  - For example, within `geom_point()`
+- These differences can be easily understood with a few examples
+
+Specifying Aesthetic Attributes
+========================================================
+class: small-code
+
+- If scaled to a variable, then you can specify within the `ggplot()` function:
+
+```
+ggplot(data=States, aes(x=NonWhite, y=McCainVote, color=Region)) +
+  geom_point()
+```
+- Or you can specify in a particular layer:
+
+```
+ggplot(data=States, aes(x=NonWhite, y=McCainVote)) +
+  geom_point(aes(color=Region))
+```
+- If fixed to a single value, then specify in a particular layer:
+
+```
+ggplot(data=States, aes(x=NonWhite, y=McCainVote)) +
+  geom_point(color="red")
+```
+
+Aesthetic Attributes: Color
+========================================================
+
+- Scaling color to a variable:
+
+```
+ggplot(data=States, aes(x=NonWhite, y=McCainVote, 
+  color=ObamaMcCain)) + geom_point()
+```
+- Fixed color to a value:
+
+```
+ggplot(data=States, aes(x=NonWhite, 
+  y=McCainVote)) + geom_point(color="purple")
+```
+Aesthetic Attributes: Shape
+========================================================
+
+- Scaling shape to a variable:
+
+```
+ggplot(data=States, aes(x=NonWhite, y=McCainVote, 
+  shape=ObamaMcCain)) + geom_point()
+```
+- Fixing color to a value:
+
+```
+ggplot(data=States, aes(x=NonWhite, 
+  y=McCainVote)) + geom_point(shape=2)
+```
+- To view shape options, type `?pch` into the R Console and scroll down to the middle of the help file
+
+Aesthetic Attributes: Size
+========================================================
+
+- Scaling size to a variable:
+
+```
+ggplot(data=States, aes(x=NonWhite, y=McCainVote, 
+  size=Population)) + geom_point()
+```
+- Fixing color to a value:
+
+```
+ggplot(data=States, aes(x=NonWhite, 
+  y=McCainVote)) + geom_point(size=5)
+```
+- Compare `size=1` with `size=10`
+
+Adding One or More Layers
+========================================================
+- Recall that layers tell how to render each data point
+  - Common layers are given by the prefixes `geom`, `stat`, and `facet`
+- The `geom` layer stands for "geometric object" and controls the type of plot we want to create
+- A few of the main `geom` layer types:
+  - `geom_point()`: observations are rendered as points
+  - `geom_bar()`: distribution of a categorical variable
+  - `geom_histogram`: distribution of a continuous variable
+- We will review the various `geom` layers in the next few sections
+
+Adding Titles and Axis Names
+========================================================
+
+- Labels are adding using `xlab()` and `ylab()` layers
+- A title is added using the `ggtitle()` layer
+- Example:
+
+```
+ggplot(data=States, 
+  aes(x=NonWhite, y=McCainVote)) + 
+  geom_point() + 
+  xlab("% Non-White") + 
+  ylab("% Voted for McCain") +
+  ggtitle("% Non-White and 2008 McCain Vote")
+```
+
+Splitting the Main Function from the Layers
+========================================================
+- When using ggplot2, it can be helpful to split your code into the main `ggplot()` function and the layers you use:
+
+```
+# initial ggplot() call:
+p <- ggplot(data=States, 
+  aes(x=NonWhite, y=McCainVote))
+
+# adding layers:
+p + geom_point() + 
+  xlab("% Non-White") + 
+  ylab("% Voted for McCain") +
+  ggtitle("% Non-White and 2008 McCain Vote")
+```
+
+Changing the Overall Theme
+========================================================
+
+- Unlike base R or lattice graphs, ggplot2 splits the visualization process into data parts (e.g., bar graph versus scatter plot) and non-data parts (e.g., margins, background color, legends)
+- Themes entail a bundle of non-data **elements** that that you can alter to change the overall look of your graph
+- The theme can be changed by adding a `theme` layer
+- Popular in-built themes: 
+  - `theme_grey()`: the default
+  - `theme_bw()`: similar to default, but with black-and-white background
+  - `theme_classic()`: fewer non-data visualizations than the above two themes
+
+Comparing In-Built Themes
+========================================================
+- Default Theme:
+
+```
+ggplot(data=States, 
+  aes(x=NonWhite, y=McCainVote)) + 
+  geom_point(color="red") + 
+  theme_grey()
+```
+- Classic Theme:
+
+```
+ggplot(data=States, 
+  aes(x=NonWhite, y=McCainVote)) + 
+  geom_point(color="red") + 
+  theme_classic()
+```
+
+Using Other Themes
+========================================================
+
+- Install and load the `ggthemes` R package:
+
+```
+install.packages("ggthemes")
+library(ggthemes)
+```
+- Commparing themes:
+
+```
+p <- ggplot(data=States, 
+  aes(x=NonWhite, y=McCainVote)) 
+
+p + geom_point() + theme_tufte()
+p + geom_point() + theme_excel()
+p + geom_point() + theme_stata()
+p + geom_point() + theme_fivethirtyeight()
+p + geom_point() + theme_economist()
+p + geom_point() + theme_wsj()
+```
+
+Challenge #1: College Graduates and Voting for McCain
+========================================================
+type: prompt
+incremental: true
+class: small-code
+
+- What is the relationship between the percent who graduated from college and the percent who voted for McCain in the 2008 presidential election in the United States?
+- **Extra Challenge**: Make the points vary in color by region, set the shape size to 3, and use a black-and-white theme
+
+- **R Code** Hint:
+
+```
+ggplot(data=States, aes(x=College, y=McCainVote, color=Region)) + 
+  geom_point(size=3) + theme_bw()
+```
+
+Check-In #1: The Grammar of Graphics
+========================================================
+type: alert
+
+- At this point you should have:
+ - Learned about the three main parts of a ggplot2 graph: data, aesthetic mappings, and layers
+ - Examined how to scale or set aesthetic attributes (e.g., color, shape, size)
+ - Explored how to alter various non-data elements of a graph, including axis labels, the title, and overall theme
+
+
+Part 2: Bar, Line, and Dot Plots
+========================================================
+type: section
+
+Mission #2: Rich States, Poor States
+========================================================
+type: prompt
+
+- Which region has the average lowest gross state product (GSP)? How about the highest?
+- To answer this question, we'll create bar plots
+
+
+What is a Bar Plot (or Graph)?
+========================================================
+
+- There are actually two kinds of bar graphs depending on what you're summarizing 
+- **Heights as Counts**: The heights of the bars indicate the number of observations (that is, rows) for each category of a variable
+- **Heights as Values**: The heights of the bars indicate a particular value (such as an average, proportion, or percentage) for each category of a variable
+- If we want to creat a bar graph with heights as values, then we must summarize our data before we create the graph
+
+Bar Graph: Heights as Counts
+========================================================
+
+- To create a bar graph of counts, you just specify the discrete variable of interest:
+
+```
+ggplot(data=States, aes(x=Region)) + geom_bar()
+```
+- Compare with:
+
+```
+table(States$Region)
+```
+- Height of each bar is the number of states in each region
+
+Bar Graph: Heights as Values
+========================================================
+
+- But what if want to create a bar graph of the average percent who voted for McCain in each region?
+- In this case, the heights are **values** -- the average for each region
+- Two steps:
+  1. Create an aggregated mini-dataset
+  2. Create a bar graph using the aggregated dataset
+- We'll summarize data using the `ddply()` function in the `plyr` package:
+
+```
+install.packages("plyr")
+library(plyr)
+```
+
+Aggregating and Creating a Bar Graph: One Variable
+========================================================
+
+- Step 1: Creating an Aggregated Mini-Dataset:
+
+```
+df <- ddply(States, c("Region"), summarize, 
+  McCainMean=mean(McCainVote))
+print(df)
+```
+
+- Step 2: Creating a Bar Graph with Heights as Values:
+
+```
+ggplot(data=df, aes(x=Region, y=McCainMean)) + 
+  geom_bar(stat="identity")
+```
+
+Aesthetics: Changing Bar Colors
+========================================================
+
+- To fix the bars to a single color, use `fill` in the `geom_bar()` layer:
+
+```
+ggplot(data=df, aes(x=Region, y=McCainMean)) + 
+  geom_bar(stat="identity", fill="lightgreen", 
+  color="black")
+```
+- Note that using `color="black"` in the `geom_bar()` layer will change the outline of the bars
+- To scale a color based on a variable, use the `fill` option in the `ggplot()` function:
+
+```
+ggplot(data=df, aes(x=Region, y=McCainMean, 
+  fill=Region)) + geom_bar(stat="identity")
+```
+
+Aesthetics: Manually Changing Bar Colors
+========================================================
+class: small-code
+
+- You can manually override the default ggplot2 colors by specifying the layer `scale_fill_manual()` 
+
+```
+p <- ggplot(data=df, aes(x=Region, y=McCainMean, fill=Region))
+
+p + geom_bar(stat="identity") +
+  scale_fill_manual(values=c("red","blue","orange","green"))
+```
+You can also use `scale_fill_brewer()`, which uses color palettes from the `RColorBrewer` package:
+
+```
+install.packages("RColorBrewer")
+library(RColorBrewer)
+display.brewer.all()
+
+p + geom_bar(stat="identity") +
+  scale_fill_brewer(palette="Set1")
+```
+
+Creating a Categorical Variable
+========================================================
+class: small-code
+
+- We will use the `recode` command from the `car` package
+- You need to install the `car` R package and then load it
+
+```
+install.packages("car")
+library("car")
+
+States$Rich <- car::recode(States$HouseholdIncome, 
+  "lo:55000='Poor'; 55001:hi = 'Rich'", 
+  as.factor.result=TRUE)
+
+table(States$Rich)
+```
+
+Aggregating and Creating a Bar Graph: Two Variables
+========================================================
+
+- Step 1: Creating an Aggregated Mini-Dataset:
+
+```
+df <- ddply(States, c("Region", "Rich"), 
+  summarize, ObamaMean=mean(ObamaVote))
+print(df)
+```
+
+- Step 2: Creating a Bar Graph with Heights as Values:
+
+```
+ggplot(data=df, aes(x=Region, y=ObamaMean, 
+  fill=Rich)) + geom_bar(stat="identity")
+```
+- Sort of ugly! Let's clean it up!
+
+Creating a Dodged Bar Graph for Two Categorical Variables
+========================================================
+
+- Using the `position` option with the `geom_bar()` layer to change the position of the bar graph:
+
+```
+p <- ggplot(data=df, aes(x=Region, y=ObamaMean, 
+  fill=Rich))
+p + geom_bar(stat="identity", position="dodge")
+```
+
+- We can also alter the width of the bars (default is  `width=0.9` and add a color palette for the fill:
+
+```
+p + geom_bar(stat="identity", position="dodge", 
+  width=0.6) + scale_fill_brewer(palette="Set2")
+```
+
+Adding a Facet Layer
+========================================================
+
+- Faceting entails creating sub-plots using values of one or more other variables
+- These are sometimes called a trellis graphs, since there are many sub-plots that give the appearance of a trellis
+- The syntax is `row_variable ~ column_variable`
+- To create a trellis graph based on a single conditioning variable, use `row_variable ~ . ` or `. ~ column_variable`
+- The `.` indicates that we're not conditioning on the rows or columns, respectively
+
+Faceting with Bar Graphs
+========================================================
+class: small-code
+
+- Setting up the initial `ggplot()` call:
+
+```
+p <- ggplot(data=df, aes(x=Region, y=ObamaMean, 
+  fill=Region))
+```
+
+- Faceting by columns:
+
+```
+p + geom_bar(stat="identity", position="dodge") + 
+  facet_grid(. ~ Rich)
+```
+
+- Faceting by rows:
+
+```
+p + geom_bar(stat="identity", position="dodge") + 
+  facet_grid(Rich ~ .)
+```
+
+Introducing Line Graphs
+========================================================
+class: small-code
+
+- A line graph is similar to a bar graph, except the heights of bars are represented by an interconnected line (sometimes with points)
+
+- We set up the initial `ggplot()` call, where we specify categorical groups by `group` (since "Rich" is categorical) and `linetype` by "Rich":"
+
+```
+p <- ggplot(data=df, aes(x=Region, y=ObamaMean, linetype=Rich, 
+  group=Rich))
+```
+- Next we specify our two layers: line and point geometric objects
+
+```
+p + geom_line() + geom_point()
+```
+
+Introducing (Cleveland) Dot Plots
+========================================================
+class: small-code
+
+- Let's create a dot plot:
+
+```
+ggplot(States, aes(x=ObamaVote, y=reorder(State, ObamaVote))) +
+  geom_point()
+```
+- Note that `reorder(State, ObamaVote)` sorts the variable "State" by the values of "ObamaVote"
+- We can clean up and reorder this graph:
+
+```
+ggplot(States, aes(x=ObamaVote, y=reorder(State, -ObamaVote))) +
+  geom_point(size=2) + theme_bw() +
+  xlab("% Voted for Obama") + ylab("States") 
+```
+
+Challenge #2: Rich States, Poor States
+========================================================
+type: prompt
+incremental: true
+class: small-code
+
+- Which region has the average lowest gross state product (GSP)? How about the highest?
+- Hint: summarize the data first and then create a bar graph
+
+- **R Code** Hint:
+
+```
+df <- ddply(States, c("Region"), summarize, 
+  GSPMean=mean(GSP))
+ggplot(data=df, aes(x=Region, y=GSPMean, fill=GSPMean)) + 
+  geom_bar(stat="identity")
+```
+
+Check-In #2: Bar, Line, and Dot Plots
+========================================================
+type: alert
+
+- At this point you should have:
+ - Created bar plots with one and multiple categorical variables
+ - Examined how faceting works with `ggplot()`
+ - Explored line graphs and dot plots
+
+Part 3: Histograms, Box Plots, and Density Plots 
+========================================================
+type: section
+
+Mission #3: Intra-Region Political Divides
+========================================================
+type: prompt
+
+- For each region, which state was most and least likely to go for McCain in the 2008 presidential election?
+- We can use boxplots and labeling to answer this question
+
+
+Creating Histograms
+========================================================
+
+- Histograms are a way of summarizing a single numerical variable
+
+```
+p <- ggplot(States, aes(x=ObamaVote))
+p + geom_histogram(binwidth=8, fill="white", 
+  color="black")
+```
+- Using facets for multiple histograms:
+
+```
+p <- ggplot(States, aes(x=ObamaVote))
+p + geom_histogram(binwidth=8, fill="white", 
+  color="black") + facet_grid(. ~ ObamaMcCain)
+```
+
+Overlaid Histograms
+========================================================
+class: small-code
+
+- It's often useful to compare two distributions
+- To create non-stacked bars we will use `position="identity"` and to create transparency we will use `alpha=0.5` within the `geom_histogram` layer
+
+
+```
+p <- ggplot(States, aes(x=ObamaVote, fill=ObamaMcCain))
+p + geom_histogram(binwidth=8, position="identity", alpha=0.5)
+```
+
+Creating Density Plots
+========================================================
+class: small-code
+
+- Density plots are another way of summarizing a single numerical variable
+```
+p <- ggplot(States, aes(x=ObamaVote))
+p + geom_density(fill="blue", alpha=0.25) 
+```
+
+- Creating overlaid density curves to compare distributions:
+
+```
+p <- ggplot(States, aes(x=ObamaVote, fill=ObamaMcCain))
+p + geom_density(alpha=0.25)
+```
+
+Creating Box Plots
+========================================================
+class: small-code
+
+- Box plots are great for examining the distribution of a continuous variable by levels of a categorical variable
+
+```
+p <- ggplot(data=States, aes(x=ObamaMcCain, y=Population)) 
+p + geom_boxplot()
+```
+- Box plot with jittered points:
+
+```
+p <- ggplot(data=States, aes(x=ObamaMcCain, y=Population)) 
+p + geom_boxplot() + geom_jitter(width=0.1, height=0.1)
+```
+
+- Box plot with mean added using a `stat` layer:
+
+```
+p + geom_boxplot() + stat_summary(fun.y="mean", geom="point", 
+  shape=23, size=3)
+```
+
+Labeling Points to Identify Outliers
+========================================================
+class: small-code
+
+- We can also label points using the `label` option in a `geom_text()` layer
+- We will set the text size at 2 and adjust the text labels from data points
+- Adjusting the location of the text:
+  - `vjust`: vertical adjustment
+  - `hjust`: horizontal adjustment
+  - 0 is left-justified, and 1 is right-justified
+
+```
+p <- ggplot(data=States, aes(x=ObamaMcCain, y=Population)) 
+p + geom_boxplot(outlier.color=NA) + geom_text(aes(label=State), size=2, hjust=1)
+```
+- The outption `outlier.color=NA` will remove the outlier points
+
+Creating Violin Plots
+========================================================
+class: small-code
+
+- Similar to box plots, but can show the distribution of the data more clearly
+```
+p <- ggplot(States, aes(x=Region, y=McCainVote))
+p + geom_violin()
+```
+- Combining a box plot with a violin plot:
+
+```
+p + geom_violin() + geom_boxplot(width=0.1, fill="lightgray", 
+  outlier.color=NA)
+```
+
+Challenge #3: Intra-Region Political Divides
+========================================================
+type: prompt
+incremental: true
+class: small-code
+
+- For each region, which state was most and least likely to go for McCain in the 2008 presidential election? Are any findings surprising to you?
+
+- **R Code** Hint:
+
+```
+p <- ggplot(data=States, aes(x=Region, y=McCainVote)) 
+p + geom_boxplot() + geom_text(aes(label=State), size=2, hjust=1)
+```
+
+Check-In #3: Histograms, Box Plots, and Density Plots 
+========================================================
+type: alert
+
+- At this point you should have:
+ - Generated histograms and density plots
+ - Examined how to overlay two or more histograms or density plots
+ - Learned how to create box plots and violin plots
+ - Examined how you can recognize outliers by using box plots and labeling data points
+
+
+Part 4: Scatter Plots and Overlaid Lines
+========================================================
+type: section
+
+Mission #4: Understanding State-Level Voting
+========================================================
+type: prompt
+
+- Our data set has several numerical variables, including `HousedholdIncome`, `College`, and `NonWhite`
+- Which of these variables do you think is most closely related to the percentage voting for McCain? 
+
+Scatter Plot of Two Numerical Variables
+========================================================
+
+- Creating a basic scatter plot:
+
+```
+p <- ggplot(data=States, aes(x=College, 
+  y=HouseholdIncome)) 
+p + geom_point()
+```
+- Compare with the correlation coefficient:
+
+```
+cor(States$College, States$HouseholdIncome)
+```
+
+Annotating a Graph
+========================================================
+class: small-code
+
+- We can use in-built R functions to grab the correlation value and create a little character object:
+
+```
+rho <- round(cor(States$College, States$HouseholdIncome), digits=2)
+rho <- paste(c("r = ", rho), collapse="")
+print(rho)
+class(rho)
+```
+
+- We can then include this by using the `annotate()` layer
+
+```
+ggplot(data=States, aes(x=College, y=HouseholdIncome)) + 
+  geom_point() +
+  annotate("text", x=40, y=40000, label=rho, size=5)
+```
+- You could also just specify `label="r = 0.82"`, but it's more fun (and replicable) to automate!
+
+Labeling Points on a Scatter Plot
+========================================================
+class: small-code
+
+- We can label points on a scatter plot using the `geom_text()` layer
+- We specify the location as the value of the "College" variable plus a small amount to avoid overlapping on the points
+- The option `hjust=0` specifies horizontal left-justification of the text (a value of 1 would specify right-justification)
+
+```
+p <- ggplot(data=States, aes(x=College, 
+  y=HouseholdIncome)) 
+p + geom_point() + geom_text(aes(x=College+0.15, 
+  label=State), size=3, hjust=0) + xlim(20, 50)
+```
+- Note that we adjust the plotting area for the x-variable using `xlim()` to avoid the text labels being cut off
+
+
+Adding a Line
+========================================================
+class: small-code
+
+- We can add a fitted regression model line to the scatter plot by adding a `stat` layer to the plot
+
+```
+p <- ggplot(data=States, aes(x=College, 
+  y=HouseholdIncome)) 
+p + geom_point() + stat_smooth(method=lm, level=0.95)
+```
+- We can also add a `loess` curve:
+
+```
+p + geom_point() + stat_smooth(method=loess, level=0.95)
+```
+
+
+Challenge #4: Understanding State-Level Voting
+========================================================
+type: prompt
+incremental: true
+class: small-code
+
+- Our data set has several numerical variables, including `HousedholdIncome`, `College`, and `NonWhite`
+- Which of these variables do you think is most predictive of the percentage voting for McCain? 
+
+- **R Code** Hint:
+
+```
+ggplot(data=States, aes(x=HouseholdIncome, y=McCainVote)) + 
+  geom_point()
+ggplot(data=States, aes(x=College, y=McCainVote)) + geom_point()
+ggplot(data=States, aes(x=NonWhite, y=McCainVote)) + geom_point()
+```
+
+Check-In #4: Scatter Plots and Overlaid Lines
+========================================================
+type: alert
+
+- At this point you should have:
+ - Created a scatter plot between two numerical variables
+ - Learned how to annotate a graph
+ - Generated a regression line and a smoothing line over a scatter plot
+ - Overlaid a scatter plot with text labels
+
+
+5. Advanced Topics
+========================================================
+type: section
+
+Advanced Topics
+========================================================
+type: prompt
+
+- Customomizing legends in ggplot2
+- Creating a scatter plot matrix for multiple variables
+- Graphing the coefficients from a regression model
+- Creating graphs for predicted probabilities from regression models
+
+
+Working with Legends
+========================================================
+class: small-code
+
+- When creating graphs, you will likely want to alter a legend at some point
+- Let's first create a graph we'll work with
+
+```
+p <- ggplot(States, aes(x=Region, y=ObamaVote, 
+  fill=Region))
+p +  geom_boxplot()
+```
+- To remove a legend:
+
+```
+p + geom_boxplot() + theme(legend.position="none")
+```
+
+- Or, because "Region" is a discrete variable used for filling:
+
+```
+p + geom_boxplot() + scale_fill_discrete(guide=FALSE)
+```
+
+
+Changing the Position of a Legend
+========================================================
+class: small-code
+
+- Altering the position of a legend using the `legend.position()` option in the `theme()` layer:
+
+```
+p + geom_boxplot() + theme(legend.position="top")
+p + geom_boxplot() + theme(legend.position="bottom")
+p + geom_boxplot() + theme(legend.position="left")
+p + geom_boxplot() + theme(legend.position="right")
+```
+
+Changing the Order of Items in a Legend
+========================================================
+class: small-code
+
+- Note the default ordering is alphabetical:
+
+```
+p + geom_boxplot()
+```
+
+- To alter the ordering of the legend items:
+
+```
+p + geom_boxplot() + 
+  scale_fill_discrete(limits=c("NE","MW","S","W"))
+```
+- To alter the ordering of the legend items and the x-variable:
+
+```
+p + geom_boxplot() + scale_fill_discrete(limits=c("NE","MW","S","W")) +
+  scale_x_discrete(limits=c("NE","MW","S","W"))
+```
+
+Changing a Legend Title and Labels
+========================================================
+class: small-code
+
+- Changing the legend title:
+
+```
+p + geom_boxplot() + 
+  scale_fill_discrete(name="Geographic \nRegion")
+```
+
+- Changing the legend labels:
+
+```
+p + geom_boxplot() + 
+  scale_fill_discrete(
+    labels=c("Midwest","Northeast","South","West")
+  )
+```
+
+Creating a Scatter Plot Matrix
+========================================================
+class: small-code
+
+- We will need to install the GGally R package:
+
+```
+install.packages("GGally")
+library(GGally)
+```
+
+- Creating a scatter plot matrix:
+
+```
+ggpairs(States[ , 
+  c("HouseholdIncome","College","Population","ObamaVote")])
+```
+
+Plotting Regression Coefficients
+========================================================
+class: small-code
+
+- We will use the `ggcoef()` function from the GGally R package 
+- We will need to also install the broom R package:
+
+```
+install.packages("broom")
+library(broom)
+```
+
+- Running a linear regression model:
+
+```
+m <- lm(ObamaVote ~ College + NonWhite + Region, data=States)
+summary(m)
+```
+
+- Plotting the coefficients
+
+```
+ggcoef(m) + xlab("Estimate") + ylab("Coefficient")
+```
+
+Graphing Predicted Values
+========================================================
+class: small-code
+
+- We can also graph the predicted values from a simple regression model with an interaction
+
+```
+install.packages("interplot")
+library(interplot)
+```
+- Running a regression model and using `interplot()`:
+
+```
+m <- lm(ObamaVote ~ College + NonWhite + College*NonWhite, data=States)
+
+interplot(m, var1="College", var2="NonWhite")
+```
+
+- Note that this function is limited in that it only works for a two-interaction regression model
+
+Check-In #5: Advanced Topics
+========================================================
+type: alert
+
+- At this point you should have:
+ - Learned how to customize legends in ggplot2
+ - Created a scatter plot matrix of variables
+ - Graphed the coefficients from a regression model
+ - Visualized the predicted values from a basic regression model with a two-way interaction
+
+
+Recap of the Workshop
+========================================================
+type: section
+
+- At this point you should have:
+ - Created density plots and histograms
+ - Generated bar plots and box plots
+ - Created scatter plots with lines and labels
+ - Examined several advanced topics, including customizing graphs and exploring packages related to ggplot2
+
+Feedback Survey:
+========================================================
+type: section
+
+- Please fill out this survey so we know how we can improve the workshop
+- Link: https://goo.gl/forms/GbNl7fhCx70IRVpi1
+
+For More Information:
+========================================================
+type: section
+
+URL: [https://compass-workshops.github.io/info/](https://compass-workshops.github.io/info/)
+
+Email List: Send an email to listserv@lists.princeton.edu with "Subscribe COMPASSWORKSHOPS" in the body and all other lines blank, *including the subject*
+
+
+COMPASS Workshops
+========================================================
+title: false
+
+<img src="Images/COMPASSLogo.png" height="168px" width="900px" style="background-color:transparent; border:0px; box-shadow:none;"></img>
+
+- Free, open-source statistical programming and data analysis workshops using R and RStudio
+- Open to everyone with a Princeton ID
+- No programming experience is necessary or expected 
+- Attendees should bring a laptop computer to fully participate in the workshops
+
+Our Website
+========================================================
+
+URL: [https://compass-workshops.github.io/info/](https://compass-workshops.github.io/info/)
+
+<img src="Images/COMPASSWebsite.png" height="497px" width="900px"></img>
+
+
+Our Mailing List
+========================================================
+left: 60%
+
+
+<div class="midcenter" style="margin-left:-490px; margin-top:-250px;">
+<img src="Images/COMPASSEmail.png" height="454px" width="490px"></img>
+</div>
+
+*** 
+
+<div>
+Send an email to listserv@lists.princeton.edu with "Subscribe COMPASSWORKSHOPS" in the body and all other lines blank, *including the subject*.
+</div>
+
+People
+========================================================
+
+- **Teaching Staff**
+ - [Ethan Fosse](http://scholar.harvard.edu/ethanfosse/) (Research Associate, Department of Sociology)
+ - [Yunkyu Sohn](http://www.ysohn.com/) (Research Associate, Department of Politics)
+
+- **Faculty Sponsors**
+ - [Margaret Frye](http://scholar.princeton.edu/mfrye/) (Assistant Professor, Department of Sociology)
+ - [Kosuke Imai](http://imai.princeton.edu/) (Professor, Department of Politics)
+ - [Matthew Salganik](http://www.princeton.edu/~mjs3/) (Professor, Department of Sociology)
