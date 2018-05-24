@@ -1,0 +1,1051 @@
+
+<style>
+.midcenter {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+}
+
+
+.footer {
+    color: black; background: #E8E8E8;
+    position: fixed; top: 90%;
+    text-align:center; width:100%;
+}
+
+
+.small-code pre code {
+  font-size: 1.2em;
+}
+
+.reveal h1, .reveal h2, .reveal h3 {
+  word-wrap: normal;
+  -moz-hyphens: none;
+}
+
+</style>
+
+<script type="text/x-mathjax-config">
+   MathJax.Hub.Config({  "HTML-CSS": { minScaleAdjust: 105, availableFonts: [] }  });
+</script>
+
+```{r setup, include=FALSE}
+opts_chunk$set(cache=TRUE)
+```
+
+Hypothesis Testing in R
+========================================================
+author: Ethan Fosse
+date: March 29, 2017
+width: 1000
+height: 700
+transition: none
+
+<small> 
+Research Associate, Department of Sociology 
+</small>
+
+<img src="Images/PrincetonLogo.png" height="83px" width="250px" style="background-color:transparent; border:0px; box-shadow:none;"></img>
+
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/deed.en_US">Creative Commons Attribution 3.0 Unported License</a>.
+
+Workshop Preliminaries
+========================================================
+type: section
+
+1. Workshop Requirements
+2. Our Research Question
+3. Roadmap for the Workshop
+
+1. Workshop Requirements
+========================================================
+type: sub-section
+
+Before You Begin
+========================================================
+
+1. You have access to a laptop computer and Internet service
+2. You have downloaded and installed R with RStudio
+3. You have downloaded the R Workshop files:
+ + `EmployedACS.RData`, `Wealth.RData`, and `WallStreet.RData`
+4. You have installed the R packages `mosaic`, `manipulate`, and `recode`
+
+**Go to**: [https://compass-workshops.github.io/info/](https://compass-workshops.github.io/info/)
+
+2. Our Research Question
+========================================================
+type: sub-section
+
+Inequality in America
+========================================================
+
+- In this workshop we will focus on the following questions related to inequality: 
+  - **What are the actual average levels of income, wealth, and occupational prestige?**
+  - **What do people in the United States think of Wall Street executives?** 
+- We'll explore these questions using real data 
+- In the process of answering theses questions we'll learn about hypothesis testing in R
+
+Want to be a Revolutionary?
+========================================================
+- Hypothesis testing is fundamentally about being a **revolutionary**
+- Most important revolutions have been around ideas, disrupting long, taken-for-granted assumptions
+- Major, incredible changes over the past 400 years through testing and re-testing claims about the world
+- Think of hypothesis testing as a tool to help you **change the world**!
+
+From Hierarchies to Hypothesis Testing
+========================================================
+- Historically, knowledge has been based on hierarchies: the people in power are "right"
+  + Example: Is the Earth the center of the universe?
+- Hypothesis testing upends this old way of doing things, since knowledge is grounded in transparent, logical reasoning from data
+- Nonetheless hierarchies persist -- and so do mythologies, unfortunately
+
+
+4. Roadmap for the Workshop
+========================================================
+type: sub-section
+
+What We'll Learn Today
+========================================================
+
+- **Part 1**: One-Sample z-Test for a Mean
+- **Part 2**: Basics of t-Tests
+- **Part 3**: Tests for Proportions
+
+Part 1: One-Sample z-Test for a Mean
+========================================================
+type: section
+
+Mission #1: Income in the United States
+========================================================
+type: prompt
+
+- What is the average income of all Americans employed in the United States? 
+- To answer this question we will use actual survey data from the American Community Survey (ACS), conducted by the U.S. government
+
+Loading the ACS Data into R
+========================================================
+- Let's load `EmploydACS.RData` into our **workspace**
+- Using RStudio's user-friendly interface:
+ 1. *File ---> Open File*
+ 2. Navigate to the location where you downloaded the files for this workshop (for example: `C:/Folder/`)
+
+- You can also try this **R Code**:
+```
+load(C:/Folder/EmployedACS.RData)
+```
+
+Examining the Data
+========================================================
+- Let's look at our data in more depth!
+- Let's use the functions `View()`, `head()`, and `str()`
+
+- Try this **R Code**:
+
+```
+View(EmployedACS)
+head(EmployedACS)
+str(EmployedACS)
+```
+- **Ask yourself**:
+ - What are the observational units of the data set? 
+ - What variables look interesting or unusual to you?
+
+Random Sample versus a Census
+========================================================
+- Often hypothesis tests are misunderstood
+- For example, what is the average age of people in the United States?
+- If you conduct a census, then you don't need a fancy inferential test!
+- These tests assume that you have a random sample from a population
+
+Working Hours of Employed People
+========================================================
+- Suppose you're a data analyst for a labor
+relations organization
+- A CEO claims that most employed Americans are lazy, working on average 37 hours per week
+- Let's assume that we know the population standard deviation is 10
+- Using the Employed ACS data, what do you conclude?
+- We will conduct a two-sided one-sample test of the population mean, assuming that we know the population standard deviation
+- Since we know the population variance, we will conduct a **z-test**
+
+Steps for Hypothesis Testing: z-Test a Mean
+========================================================
+- We use the z-test when we are testing a claim about a population mean with known population standard deviation
+- Five Steps:
+  1. State the null and alternative hypotheses
+  2. Specify a significance level $\alpha$
+  3. Compute the test statistic $z$
+  4. Assuming the null is true and make a decision by: 
+     - a. Comparing the test statistic $z$ with the critical value or values 
+      - b. Comparing the p-value with significance level $\alpha$
+  5. State your conclusion
+
+
+Step 1: State the Hypotheses
+========================================================
+
+- For a two-sided one-sample z-test, the null and alternative hypotheses are:
+$$ H_o: \mu = \mu_{0} $$ 
+$$ H_a: \mu \neq \mu_{0} $$
+
+- Since the CEO is claiming the population mean is 37, we have the following setup:
+$$ H_o: \mu = 37 $$ 
+$$ H_a: \mu \neq 37 $$
+
+- Try this **R Code**:
+
+```
+mu0 <- 37 # CEO's claimed population mean
+```
+
+Step 2: Specify a Significance Level
+========================================================
+
+- Recall that researchers use $\alpha$ as the criterion for "statistical significance"
+- We will follow convention and set $\alpha = 0.05$ 
+- This will affect our critical values and our interpretation of the p-value
+- Keep in mind that this is a social construction, *not* a law of nature!
+- Try this **R Code**:
+
+```
+alpha <- 0.05
+```
+
+Step 3: Compute the Z Test Statistic
+========================================================
+
+- The $z$ test statistic is given by:
+
+$$z = \frac{\bar{x} - \mu_0}{\sigma/\sqrt{n}}$$ 
+
+- We are told that we already know the population standard deviation is 10
+- From the data we know the sample mean ($\bar{x}$) and sample size ($n$)
+- We also know the claimed population mean ($\mu_0$) 
+- We can do this calculation in R very easily
+
+Using R to Calculate the Z Test Statistic
+========================================================
+class: small-code
+
+- We will use the `mean()` and `nrow()` functions to find the mean and sample size, respectively:
+
+```
+mean(EmployedACS$HoursWk) 
+nrow(EmployedACS) 
+```
+- Next we set up these values for our calculation:
+
+```
+xbar <- 38.5 # sample mean
+sigma <- 10 # known population standard deviation
+n <- 343 # sample size
+print(mu0) # CEO's claimed population mean
+```
+- Finally we actually calculate the z test statistic:
+
+```
+z <- (xbar - mu0)/(sigma/sqrt(n))
+print(z)
+```
+
+Steps 4a and 4b: Making a Decision
+========================================================
+
+- We need to make decision whether or not to reject the null hypothesis
+- The z test statistic tells us how consistent our sample mean (i.e., our data) is with the CEO's claimed population mean (i.e., the null hypothesis)
+- A very negative or very positive z test statistic tells us that our data is inconsistent with the null hypothesis, suggesting we should reject the null
+- Critical values and p-values help us make this decision
+
+Step 4a: Critical Values Approach
+========================================================
+class: small-code
+
+- We assume the CEO is right (i.e., that the null hypothesis is true), and then make a decision by comparing our z test statistic with the critical value or values
+- For a two-sided z test, our critical values are $-z_{\alpha/2}$ and $z_{\alpha/2}$
+- We will reject our null if $z \leq -z_{\alpha/2}$ or $z \geq  z_{\alpha/2}$ (that is, if our z test statistic lies in the **rejection region**)
+- An extreme z test statistic will lead us, generally speaking, to reject the null hypothesis
+
+Critical Values with R
+========================================================
+
+- For a two-sided test, we have two critical values depending on $\alpha/2$
+- Note that $-z_{\alpha/2}$ is the $100(\alpha/2)$ percentile of the standard normal distribution and $z_{\alpha/2}$ is the $100(1-\alpha/2)$ percentile of the standard normal distribution
+- To calculate critical values you can use `qnorm()` in base R, which gives a z-score when you supply a probability
+- However, must people will find `xqnorm()` with the `mosaic` package more useful, since it provides augmented output with a visualization
+
+
+Finding and Visualizing Critical Values
+========================================================
+
+- Let's find our lower and upper critical values:
+
+```
+# significance level
+print(alpha) 
+
+# lower and upper probabilities
+lower.prob <- alpha/2 # 0.025
+upper.prob <- 1-alpha/2 # 0.975
+
+# z critical values:
+qnorm(c(lower.prob, upper.prob)) # base R
+xqnorm(c(lower.prob, upper.prob)) # mosaic
+
+# our z test statistic:
+print(z) 
+```
+- Since $z \geq z_{\alpha/2}$, we reject the null hypothesis that $\mu=37$
+
+Step 4b: P-value Approach
+========================================================
+class: small-code
+
+- Critical values are an "either/or"" decision process: either the z test statistic is more extreme than the critical values, or it is not
+- An alternative is the **p-value** (or probability value)
+- Assuming the null hypothesis is true, the p-value tells us how likely we would obtain a test statistic as or more extreme than the one we actually obtained
+- A low p-value indicates inconsistency between our sample statistic and the claimed value of the population parameter
+- For a two-sided test, the p-value is: $2\times P(Z \geq |z|)$ 
+- Minor note: when calculating the p-value, we will often assume that $P(Z \geq z)$ is equivalent to $P(Z > z)$
+
+P-values with R
+========================================================
+
+- The base R function `pnorm()` can be used to find p-values, but most people will find the augmented `mosaic` function `xpnorm()` more useful
+- These functions take a z-value as an input and give out a probability
+- The default option `lower.tail=TRUE` gives $P(Z \leq z)$, while `lower.tail=FALSE` gives $P(Z>z)$ 
+- Without using a visualization of the normal distribution, it's easy to mix these probabilities up!
+
+Finding and Visualizing P-values
+========================================================
+class: small-code
+
+- Let's find the p-values!
+- Finding and visualizing $P(Z \leq z)$:
+
+```
+pnorm(z, lower.tail=TRUE) # base R
+xpnorm(z, lower.tail=TRUE) # mosaic
+```
+- Finding and visualizing $P(Z > z)$:
+
+```
+pnorm(z, lower.tail=FALSE) # base R
+xpnorm(z, lower.tail=FALSE) # mosaic
+
+print(2*0.0029) # p-value
+print(alpha) # alpha level
+```
+- Since $0.0058 \leq 0.05$, we reject the null hypothesis that $\mu=37$
+
+Test Statistics and P-values
+========================================================
+
+- To fully understand the relationship between test statistics and p-values, it's useful to interact with the normal distribution
+- Make sure you have the `manipulate` R package installed and loaded
+
+- Try this **R Code**:
+
+```
+xpnorm(z, manipulate=TRUE)
+```
+- **Ask yourself**:
+  - What happens when you set an extreme value of the z test statistic (referred to as `q` in the interactive console)?
+
+Step 5: State Your Conclusion
+========================================================
+
+- We reject the null hypothesis that the population mean is 37 hours per week at the $\alpha = 0.05$ level
+- The z test statistic $z \approx 2.76$ is greater than the critical value of $z_{\alpha/2} = 1.96$ and the p-value is less than 0.05
+- In short, the CEO is wrong! 
+- If anything, the sample average suggests Americans work more, not less, than 37 hours per week
+
+Recap: One-Sample z-Test for a Mean (Two-Sided)
+========================================================
+class: small-code
+
+- Summary of what we've done so far:
+
+```
+alpha <- 0.05 # significance level
+mu0 <- 37 # CEO's claimed population mean
+
+xbar <- mean(EmployedACS$HoursWk) # sample mean
+sigma <- 10 # known population standard deviation
+n <- nrow(EmployedACS) # sample size
+print(mu0) # CEO's claimed population mean
+z <- (xbar - mu0)/(sigma/sqrt(n)) # z test statistic
+
+xqnorm(c(alpha/2, 1-alpha/2)) # critical values
+print(2*xpnorm(z, lower.tail=FALSE)) # p-value
+```
+- We've focused on a two-sided hypothesis test so far, but left-sided and right-sided tests can also be conducted
+
+One-Sample z-Test for a Mean (Left-Sided)
+========================================================
+
+- Since the CEO thinks people are lazy we may think it unreasonable to even consider the population average more than 37 hours per week:
+
+$$ H_o: \mu = 37 $$ 
+$$ H_a: \mu < 37 $$
+
+- This is known as a **left-sided** hypothesis test, which changes our decision-making process (but not the z test statistic)
+- For a left-sided test, if $Z \leq -z_\alpha$, then we reject the null hypothesis
+- For a left-sided test, the p-value is $P(Z \leq z)$
+
+Left-Sided z-Test: Using the Critical Value Approach
+========================================================
+
+- Finding and visualizing the critical value:
+
+```
+# lower probability
+lower.prob <- alpha # 0.05
+
+# z critical value:
+qnorm(lower.prob) # base R
+xqnorm(lower.prob) # mosaic
+
+# z test statistic
+print(z)
+```
+
+- The z test statistic of 2.76 is much greater than the critical value of -1.645, so we fail to reject the null against the alternative that the population mean is less 37 hours per week
+
+Left-Sided z-Test: Using the P-value Approach
+========================================================
+
+- Finding and visualizing $P(Z \leq z)$:
+
+```
+pnorm(z, lower.tail=TRUE) # base R
+xpnorm(z, lower.tail=TRUE) # mosaic
+
+# compare with the alpha significance level
+print(alpha)
+```
+
+- This probability is much, much greater than $\alpha = 0.05$, so we fail to reject the null against the alternative that the population mean is less 37 hours per week
+- This p-value reflects the fact that the sample average is about 38.5 hours
+
+
+One-Sample z-Test for a Mean (Right-Sided)
+========================================================
+
+- On the other hand, since it's widely-understood that Americans are overworked, we may think it preposterous to even consider the average being below 37 hours per week:
+
+$$ H_o: \mu = 37 $$ 
+$$ H_a: \mu > 37 $$
+
+- This is known as a **right-sided** hypothesis test, which again changes our decision-making process (but not the z test statistic)
+- For a right-sided test, if $Z \geq z_\alpha$, then we reject the null hypothesis
+- For a right-sided test, the p-value is $P(Z \geq z)$
+
+
+Right-Sided z-Test: Using the Critical Value Approach
+========================================================
+
+- Finding and visualizing the critical value:
+
+```
+# upper probability
+upper.prob <- 1-alpha # 0.95
+
+# z critical value:
+qnorm(upper.prob) # base R
+xqnorm(upper.prob) # mosaic
+
+# z test statistic
+print(z)
+```
+
+- The z test statistic of 2.76 is greater than the critical value of 1.645, so we reject the null against the alternative that the population mean is greater than 37 hours per week
+
+Right-Sided z-Test: Using the P-value Approach
+========================================================
+
+- Finding and visualizing $P(Z \geq z)$:
+
+```
+pnorm(z, lower.tail=FALSE) # base R
+xpnorm(z, lower.tail=FALSE) # mosaic
+
+# compare with the alpha significance level
+print(alpha)
+```
+
+- This probability is less than $\alpha = 0.05$, so we reject the null against the alternative that the population mean is less 37 hours per week
+- This p-value again reflects the fact that the sample average is about 38.5 hours (which greater than the 37 hours)
+
+
+Working with One-Sided Hypothesis Tests
+========================================================
+
+- Many beginners find one-sided hypothesis tests confusing
+- To avoid confusion you should: (1) keep track of the probabilities of interest and, whenever possible, (2) always draw or visualize the sampling distribution
+- In practice, one-sided hypothesis tests are used **very rarely**, since a statistically insignificant two-sided test can be "transmogrified" into a statistically significant one-sided test
+
+Challenge #1: Income in the United States
+========================================================
+type: prompt
+incremental: true
+class: small-code
+
+- Let's examine the income of employed Americans
+- Conduct a two-sided one-sample z-test of the claim that the population average is $47,000 U.S. Dollars (that is, $\mu = 47$) at the $\alpha = 0.05$ level with a known population standard deviation of $49,000 U.S. Dollars (that is, $\sigma = 49$) 
+- **R Code** Hint:
+
+```
+alpha <- 0.05 # significance level
+mu0 <- 47 # claimed population mean
+
+xbar <- mean(EmployedACS$Income) # sample mean
+sigma <- 49 # known population standard deviation
+n <- nrow(EmployedACS) # sample size
+z <- (xbar - mu0)/(sigma/sqrt(n)) # z test statistic
+
+xqnorm(c(alpha/2, 1-alpha/2)) # critical values
+print(2*xpnorm(z, lower.tail=TRUE)) # p-value
+```
+
+Check-In #1: One-Sample z-Test for a Mean
+========================================================
+type: alert
+
+- At this point you should have:
+ - Examined the process of conducting one-sample z-test for a mean
+ - Learned how to find critical values and p-values using the standard normal distribution
+ - Explored the differences between one-sided and two-sided hypothesis tests
+
+Check-In: Attendance (and Feedback Survey):
+========================================================
+type: section
+
+- **Please** let us know that you've attended today so we can keep offering this and other workshops!
+- You can fill out the rest of the survey at the end of the workshop 
+- Link: https://goo.gl/forms/GbNl7fhCx70IRVpi1
+
+
+Part 2: Basics of t-Tests
+========================================================
+type: section
+
+
+Mission #2: Occupational Prestige
+========================================================
+type: prompt
+
+- What is the average occupational prestige in the population?
+- We'll use actual data from the General Social Survey (GSS) to answer this question
+
+
+Loading Wealth Data into R
+========================================================
+class: small-code
+
+- Let's clean up our workspace:
+
+```
+rm(list=ls())
+gc()
+```
+
+- Let's load `Wealth.RData` into our **workspace**
+- Using RStudio's user-friendly interface:
+ 1. *File ---> Open File*
+ 2. Navigate to the location where you downloaded the files for this workshop (for example: `C:/Folder/`)
+
+- You can also try this **R Code**:
+```
+load(C:/Folder/Wealth.RData)
+```
+
+Examining the Data
+========================================================
+- Let's look at our data in more depth!
+- Let's use the functions `View()`, `head()`, and `str()`
+
+- Try this **R Code**:
+
+```
+View(Wealth)
+head(Wealth)
+str(Wealth)
+```
+
+One-Sample t-Test versus One-Sample z-Test
+========================================================
+
+- So far we've assumed that we know the population standard deviation ($\sigma$), which is required to calculate the z test statistic
+- In practice, we don't know the population standard deviation, so we must estimate it with the sample standard deviation ($s$) when calculating the test statistic
+- This introduces additional uncertainty, requiring us to use the t-test rather than z-test
+- Even if we know the population standard deviation, we should still use the t-test if our samples are fairly small (say, less than 30 observations)
+
+Plotting the Normal Distribution
+========================================================
+- We can plot distributions using the `plotDist()` command that comes with the `mosasic` package
+- The default is the standard normal distribution, with a mean of zero and a standard deviation of 1
+
+- Try this **R Code**:
+
+```
+plotDist("norm", col="red")
+plotDist("norm", col="blue", mean=30, sd=10)
+```
+
+Plotting the t-Distribution
+========================================================
+- We can also use `plotDist()` to visualize the t-distribution, which changes shape depending on the degree of freedom (df), where `df = n - 1` 
+- Try this **R Code**:
+
+```
+plotDist("t",  df=500, col="purple")
+plotDist("t",  df=30, col="blue", add=TRUE)
+plotDist("t",  df=10, col="green", add=TRUE)
+plotDist("t",  df=5, col="yellow", add=TRUE)
+plotDist("t",  df=3, col="orange", add=TRUE)
+plotDist("t",  df=2, col="red", add=TRUE)
+```
+- **Ask Yourself**:
+  - What's the difference between the normal distribution and the t-distribution?
+  - Why might this be a more realistic model of the sampling distribution?
+
+One-Sample t-Test versus One-Sample z-Test
+========================================================
+
+- A prominent Ivy League economist thinks the average wealth in the U.S. population is $400,000 dollars
+- Wealth is a person's net worth, which includes all assets including stocks, homes, cars, and everything else -- minus debts and other liabilities
+- Let's test the economist's claim using a two-sided, one-sample t-test!
+- We use the t-test when we are testing a claim about a population mean with unknown population standard deviation or the sample size is small (less than 30 observations, approximately)
+
+Steps for Hypothesis Testing: t-Test
+========================================================
+- Five Steps:
+  1. State the null and alternative hypotheses
+  2. Specify a significance level $\alpha$
+  3. Compute the test statistic $t$
+  4. Assuming the null is true and make a decision by: 
+     - a. Comparing the test statistic $t$ with the critical value or values 
+     - b. Comparing the p-value with significance level $\alpha$
+  5. State your conclusion
+
+Conducting a One-Sample t-Test (Two-Sided)
+========================================================
+class: small-code
+
+- Try this **R Code**:
+
+```
+alpha <- 0.05 # significance level
+mu0 <- 400 # CEO's claimed population mean
+
+xbar <- mean(Wealth$Wealth) # sample mean
+s <- sd(Wealth$Wealth) # sample standard deviation
+n <- nrow(Wealth) # sample size
+print(mu0) # claimed population mean
+t <- (xbar - mu0)/(s/sqrt(n)) # t test statistic
+
+xqt(c(alpha/2, 1-alpha/2), df=n-1) # critical values
+print(2*xpt(t, lower.tail=TRUE, df=n-1)) # p-value
+```
+- What do you conclude?
+
+Hypothesis Tests with R
+========================================================
+
+- So far we've been conducting hypothesis tests by writing out the full set of R code
+- But R contains many, many in-built functions for hypothesis testing, such as the `t.test()` function (which comes with base R as well as an augmented version with the `moasic` package)
+- These functions make hypothesis testing much easier to conduct!
+
+
+One-Sample t-Test (Two-Sided)
+========================================================
+class: small-code
+
+- A colleague thinks the average family income in the United States population is $50,000
+- Use `Wealth.RData` to test this claim using a **two-sided t-test**!
+- Try this **R Code**:
+
+```
+t.test(~FamilyInc, data = Wealth, mu=50000)
+print(2*xpt(q=-2.8388, lower.tail=TRUE, df=324))
+```
+- What do you conclude?
+
+One-Sample t-Test (Left-Sided)
+========================================================
+class: small-code
+
+- A colleague thinks the average family income in the United States population is $50,000
+- Use `Wealth.RData` to test this claim using a **left-sided t-test**!
+- Try this **R Code**:
+
+```
+t.test(~FamilyInc, data = Wealth, mu=50000, alternative="less")
+xpt(q=-2.8388, lower.tail=TRUE, df=324)
+```
+- What do you conclude?
+
+One-Sample t-Test (Right-Sided)
+========================================================
+class: small-code
+
+- A colleague thinks the average family income in the United States population is $50,000
+- Use `Wealth.RData` to test this claim using a **right-sided t-test**!
+- Try this **R Code**:
+
+```
+t.test(~FamilyInc, data = Wealth, mu=50000, 
+    alternative="greater")
+xpt(q=-2.8388, lower.tail=FALSE, df=324)
+```
+- What do you conclude?
+
+Two Independent Samples t-Test
+========================================================
+- We can also compare means from two presumably unrelated populations (hence "independent samples")
+- An additional assumption is that the data from the two populations are normally distributed
+- Thus, we can conduct an **unpaired t-test**, also known as a **two independent samples t-test**
+- The steps for hypothesis testing follow the same general format as with the one-sample t-test 
+
+Wealth by Education
+========================================================
+- An educational researcher wants to know if wealth differs between those who have a college degree and those who do not
+- Let's first create a factor variable called `College` using `Wealth.RData` and the `recode()` function in the `car` package:
+- Try this **R Code**:
+
+```
+Wealth$College <- car::recode(Wealth$Educ, 
+    "0:15='No'; 16:20='Yes'", 
+    as.factor.result=TRUE)
+```
+- Note: `car::recode()` specifies that we want to use the `recode()` function in the `car` package, not some other package
+
+Conducting the Two Independent Samples t-Test
+========================================================
+
+- Now let's conduct the two independent samples t-test:
+
+```
+# conducting the unpaired t-test:
+t.test(Wealth ~ College, data = Wealth, mu=0)
+
+# computing and visualizing the p-value:
+print(2*xpt(q=-3.6495, lower.tail=TRUE, 
+    df=161.89))
+```
+- We reject the null that the population means are zero at the $\alpha=0.05$ level
+
+Challenge #2: Occupational Prestige
+========================================================
+type: prompt
+incremental: true
+
+- Let's examine occupational prestige in the United States
+- Conduct a two-sided one-sample t-test of the claim that the population average is 47 (that is, $\mu = 47$) at the $\alpha = 0.05$ ;eve;
+
+
+```
+t.test(~Prestige, data = Wealth, mu=47)
+
+print(2*xpt(q=1.1728, lower.tail=FALSE, 
+    df=324))
+```
+
+Check-In #2: Basics of t-Tests
+========================================================
+type: alert
+
+- At this point you should have:
+ - Visualized the normal distribution and the t-distribution
+ - Conducted one-sample t-test for a mean
+ - Conducted the two independent samples t-test
+
+
+Part 3: Tests for Proportions
+========================================================
+type: section
+
+Mission #3: Wall Street Executives
+========================================================
+type: prompt
+
+- Is social class related to people's perception of Wall Street executives?
+- We will use actual data from the U.S. population to answer this question
+
+Loading Wall Street Data into R
+========================================================
+class: small-code
+
+- Let's clean up our workspace:
+
+```
+rm(list=ls())
+gc()
+```
+
+- Let's load `WallStreet.RData` into our **workspace**
+- Using RStudio's user-friendly interface:
+ 1. *File ---> Open File*
+ 2. Navigate to the location where you downloaded the files for this workshop (for example: `C:/Folder/`)
+
+- You can also try this **R Code**:
+```
+load(C:/Folder/WallStreet.RData)
+```
+
+Examining the Data
+========================================================
+- Let's look at our data in more depth!
+- Let's use the functions `View()`, `head()`, and `str()`
+
+- Try this **R Code**:
+
+```
+View(WallStreet)
+head(WallStreet)
+str(WallStreet)
+```
+
+Steps for Hypothesis Testing: z-Test for a Proportion
+========================================================
+- We use the z-test when we are testing a claim about a population proportion 
+- Five Steps:
+  1. State the null and alternative hypotheses
+  2. Specify a significance level $\alpha$
+  3. Compute the test statistic $z$
+  4. Assuming the null is true and make a decision by: 
+     - a. Comparing the test statistic $z$ with the critical value or values 
+      - b. Comparing the p-value with significance level $\alpha$
+  5. State your conclusion
+
+The z Test Statistic for a Proportion
+========================================================
+- For a two-sided one-sample z-test for a proportion, the null and alternative hypotheses are:
+$$ H_o: \pi = \pi_{0} $$ 
+$$ H_a: \pi \neq \pi_{0} $$
+
+- Likewise, the z test statistic is:
+
+$$z = \frac{p - \pi_0}{\sqrt{\pi_0(1-\pi_0)/n}}$$ 
+
+- Note on notation: $\pi$ refers to the (unknown) population proportion, $\pi_0$ is the claimed value of the population proportion, and $p$ is the sample proportion
+- This is just saying the sample size should be relatively large
+
+Success-Failure Condition
+========================================================
+
+- When using the one-sample z-test for a proportion, we must assume that the "success-failure" condition holds
+- The sample size must be big enough so that both the number of "successes," $n\pi$, and the number of "failures," $n(1-\pi)$, are at least 10
+- In practice you won't know $\pi$ in the population, but you can guess the reasonableness of this assumption using the sample proportion $p$
+- We will posit that this assumption holds, since our sample size is quite large ($n = 810$)
+
+Wall Street Perceptions
+========================================================
+- Imagine you're an analyst at a major Wall Street firm
+- You're asked to examine people's attitudes towards Wall Street
+- Consumer advocates are claiming Americans have a very negative view of Wall Street executives, with 80% thinking they are "greedy"
+- Your boss is very concerned about this public perception, and wants you to test this claim by conducting a two-sided one-sample z-test for a proportion using `WallStreet.RData`
+
+Examining the Proportions
+========================================================
+class: small-code
+
+- Let's use the `tally()` function from the `mosaic` package to compute proportions and the double bracket notation to extract particular proportions of interest
+- Try this **R Code**:
+
+```
+# counts:
+tally(~Greedy, format="count", data = WallStreet)
+
+# proportions:
+tally(~Greedy, format="proportion", data = WallStreet)
+
+# proportion "No":
+tally(~Greedy, format="proportion", data = WallStreet)[[1]]
+
+# proportion "Yes":
+tally(~Greedy, format="proportion", data = WallStreet)[[2]]
+```
+
+Is Wall Street Greedy?
+========================================================
+class: small-code
+
+- Try this **R Code**:
+
+```
+alpha <- 0.05 # significance level
+p0 <- 0.80 # claimed population proportion
+
+pbar <- prop.table(table(WallStreet$Greedy))[[2]] # sample proportion
+n <- nrow(WallStreet) # sample size
+z <- (pbar-p0)/sqrt(p0*(1-p0)/n) 
+print(z) # z test statistic 
+
+xqnorm(c(alpha/2, 1-alpha/2)) # critical values
+print(2*xpnorm(z, lower.tail=FALSE)) # p-value
+```
+- We fail to reject the null hypothesis, which suggests that Americans think Wall Street executives are greedy!
+
+Using an In-Built Function
+========================================================
+class: small-code
+
+- We can also conduct this test using `prop.test()` that comes with R (and which has an augmented version when you've loaded the `moasic` package)
+- Try this **R Code**:
+
+```
+prop.test(~Greedy=="Yes", p=0.80, data = WallStreet, 
+    correct=TRUE)
+print(1-xpchisq(q=3.5667, df = 1, lower.tail=TRUE)) # p-value
+```
+- What is your conclusion?
+
+Technical Notes
+========================================================
+
+- The `prop.test()` function actually uses a $\chi^{2}$ distribution, not a standard normal distribution, to calculate the p-value
+- The option `correct=TRUE` specifies a "continuity correction" since, strictly speaking, the sampling distribution is discrete rather than continuous
+
+Comparing Two Proportions: Gender Differences
+========================================================
+class: small-code
+
+- Are there gender differences in perceptions of Wall Street executives as "greedy"?
+- We can easily compare two proportions with the `prop.test()` function, with the null that the proportions are the same in the population
+
+```
+tally(~Greedy | Gender, format="proportion", data = WallStreet) 
+
+prop.test(~Greedy | Gender, data = WallStreet, correct=TRUE)
+
+print(1-xpchisq(q=5.9457, df = 1, lower.tail=TRUE)) # p-value
+```
+
+- We reject the null that the difference in proportions in the population is zero at the $\alpha=0.05$ level
+  
+Creating a Variable the "Upper" Class
+========================================================
+class: small-code
+
+- Are there class differences in perceptions of Wall Street executives as "greedy"?
+- Let's create a binary variable comparing "Middle/Lower" versus "Upper"
+
+```
+WallStreet$Upper <- car::recode(WallStreet$SocialClass, 
+    "'Upper'='Yes'; else='No'", as.factor.result=TRUE)
+```
+
+- Now we can compare proportions:
+
+```
+tally(~Greedy | Upper, format="proportion", data = WallStreet) 
+```
+
+Comparing Two Proportions: Class Differences
+========================================================
+class: small-code
+
+- Try this **R Code**:
+
+```
+prop.test(~Greedy | Upper, data = WallStreet, correct=TRUE)
+
+print(1-xpchisq(q=3.8852, df = 1, lower.tail=TRUE)) # p-value
+```
+
+- We reject the null that the difference in proportions in the population is zero at the $\alpha=0.05$ level
+
+
+
+Challenge #3: Wall Street Executives
+========================================================
+type: prompt
+incremental: true
+class: small-code
+
+- Is social class related to people's perception of Wall Street executives? Look at perceptions of being "dishonest" using the variable we just created called `Upper`
+
+- **R Code** Hint:
+
+```
+tally(~Dishonest | Upper, format="proportion", 
+    data = WallStreet) 
+
+prop.test(~Dishonest | Upper, data = WallStreet, correct=TRUE)
+
+print(1-xpchisq(q=13.698, df = 1, lower.tail=TRUE)) # p-value
+```
+
+- Now try this analysis this for "Intelligent" and "Overpaid"!
+
+Recap of the Workshop
+========================================================
+type: section
+
+- At this point you should have:
+ - Examined the general process of hypothesis testing
+ - Conducted a one-sample z-test for a mean 
+ - Conducted a one-sample z-test for a proportion 
+ - Explored comparing differences between groups
+
+Attendance (and Feedback Survey):
+========================================================
+type: section
+
+- Please fill out this survey so we can keep offering this and other workshops!
+- Link: https://goo.gl/forms/GbNl7fhCx70IRVpi1
+
+For More Information:
+========================================================
+type: section
+
+URL: [https://compass-workshops.github.io/info/](https://compass-workshops.github.io/info/)
+
+Email List: Send an email to listserv@lists.princeton.edu with "Subscribe COMPASSWORKSHOPS" in the body and all other lines blank, *including the subject*
+
+
+COMPASS Workshops
+========================================================
+title: false
+
+<img src="Images/COMPASSLogo.png" height="168px" width="900px" style="background-color:transparent; border:0px; box-shadow:none;"></img>
+
+- Free, open-source statistical programming and data analysis workshops using R and RStudio
+- Open to everyone with a Princeton ID
+- No programming experience is necessary or expected 
+- Attendees should bring a laptop computer to fully participate in the workshops
+
+Our Website
+========================================================
+
+URL: [https://compass-workshops.github.io/info/](https://compass-workshops.github.io/info/)
+
+<img src="Images/COMPASSWebsite.png" height="497px" width="900px"></img>
+
+
+Our Mailing List
+========================================================
+left: 60%
+
+
+<div class="midcenter" style="margin-left:-490px; margin-top:-250px;">
+<img src="Images/COMPASSEmail.png" height="454px" width="490px"></img>
+</div>
+
+*** 
+
+<div>
+Send an email to listserv@lists.princeton.edu with "Subscribe COMPASSWORKSHOPS" in the body and all other lines blank, *including the subject*.
+</div>
+
+People
+========================================================
+
+- **Teaching Staff**
+ - [Ethan Fosse](http://scholar.harvard.edu/ethanfosse/) (Research Associate, Department of Sociology)
+ - [Yunkyu Sohn](http://www.ysohn.com/) (Research Associate, Department of Politics)
+
+- **Faculty Sponsors**
+ - [Margaret Frye](http://scholar.princeton.edu/mfrye/) (Assistant Professor, Department of Sociology)
+ - [Kosuke Imai](http://imai.princeton.edu/) (Professor, Department of Politics)
+ - [Matthew Salganik](http://www.princeton.edu/~mjs3/) (Professor, Department of Sociology)

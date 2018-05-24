@@ -1,0 +1,888 @@
+
+<style>
+.midcenter {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+}
+
+
+.footer {
+    color: black; background: #E8E8E8;
+    position: fixed; top: 90%;
+    text-align:center; width:100%;
+}
+
+
+.small-code pre code {
+  font-size: 1.2em;
+}
+
+.reveal h1, .reveal h2, .reveal h3 {
+  word-wrap: normal;
+  -moz-hyphens: none;
+}
+
+</style>
+
+```{r setup, include=FALSE}
+opts_chunk$set(cache=TRUE)
+```
+
+Basic Graphics with ggplot2
+========================================================
+author: Ethan Fosse
+date: March 1, 2017
+width: 1000
+height: 700
+transition: none
+
+<small> 
+Research Associate, Department of Sociology 
+</small>
+
+<img src="Images/PrincetonLogo.png" height="83px" width="250px" style="background-color:transparent; border:0px; box-shadow:none;"></img>
+
+This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/3.0/deed.en_US">Creative Commons Attribution 3.0 Unported License</a>.
+
+Workshop Preliminaries
+========================================================
+type: section
+
+1. Workshop Requirements
+2. Installing and loading ggplot2
+3. Our Research Question
+4. Roadmap for the Workshop
+
+Two-Part Workshop
+========================================================
+type: sub-section
+
+- This is essentially a two-part workshop 
+- In Part 1 (March 1) we will cover the basic commands of ggplot, which are bundled into the `qplot()` function (which stands for "quick plot")
+- In Part 2 (March 8) we will cover more advanced functions in ggplot, which allow for greater flexibility when creating visualizations
+
+1. Workshop Requirements
+========================================================
+type: sub-section
+
+Before You Begin
+========================================================
+
+1. You have access to a laptop computer and Internet service
+2. You have downloaded and installed R with RStudio
+3. You have downloaded the R Workshop files:
+ + `States.RData`
+ + `ggplot2part1.html`
+
+**Go to**: [https://compass-workshops.github.io/info/](https://compass-workshops.github.io/info/)
+
+2. Installing and Loading ggplot2
+========================================================
+type: sub-section
+
+The Power of R and R Packages
+========================================================
+
+- Since R is free and open-source, lots of people are writing R packages
+- An R package is just a collection of R functions, data, and code in a well-defined format
+- R packages can do everything from text mining (`tm` package) to data visualzation (`ggplot2` package) to data wrangling (`dplyr` package)
+- Over 9,000 R packages as of 2016 on CRAN (Comprehensive R Archive Network)
+
+Installing Packages in RStudio
+========================================================
+
+- To install R packages in RStudio: GUI versus R Console
+- 1. Using the GUI: Go to the `Packages` tab and click `Install`
+- 2. Using the R Console: `install.packages("package_name")`
+ - `package_name` is just the name of the R package in quotes
+ -  Try this **R Code**: `install.packages("ggplot2")`
+
+Loading an R Package For Use
+========================================================
+
+- Once you've installed an R package, it's then bundled with R and RStudio
+- You now have access to all of the functions, data, code, and other files associated with the installed R package
+- However, to access these files you must load your R package
+ - Try this **R Code**: `library(ggplot2)`
+- You only have to install an R package once, but you must load it every time you start R
+
+
+3. Our Research Question
+========================================================
+type: sub-section
+
+The 2008 Presidential Election
+========================================================
+
+![Obama and McCain](Images/ObamaMcCainFaces.png)
+
+The Electoral College Map
+========================================================
+
+![Obama and McCain Map](Images/ObamaMcCainMap.png)
+
+Examining the Election of 2008
+========================================================
+
+- Throughout this  workshop we will consider the following question:
+ - **Why did some states go for Obama and others for McCain?**
+- We'll explore this question using real data on 50 states
+- In the process of answering this question we'll learn about visualizing data with ggplot2
+
+4. Roadmap for the Workshop
+========================================================
+type: sub-section
+
+What We'll Learn Today
+========================================================
+
+- **Part 1**: Histograms and Density Plots
+- **Part 2**: Bar Plots and Faceting
+- **Part 3**: Boxplots
+- **Part 4**: Scatterplots
+- **Part 5**: Spatial Mapping
+
+Part 1: Histograms and Density Plots
+========================================================
+type: section
+
+Mission #1:  Educational Differences in the United States
+========================================================
+type: prompt
+
+* How does the percent who went to high school differ across regions? 
+* Later we'll examine if education might help us understand variation in voting across the United States
+
+* We'll use data to answer this question!
+
+
+Loading Data into R
+========================================================
+- Let's load `States.RData` into our **workspace**
+- Using RStudio's user-friendly interface:
+ 1. *File ---> Open File*
+ 2. Navigate to the location where you downloaded the files for this workshop (for example: `C:/Folder/`)
+
+- You can also try this **R Code**:
+```
+load(C:/Folder/States.RData)
+```
+
+Viewing the Data as a Spreadsheet
+========================================================
+- Let's look at our data in more depth!
+- Let's use the function `View()`
+- Try this **R Code**:
+
+```
+View(States)
+```
+- **Ask yourself**:
+ - What are the observational units of the data set? 
+ - What variables look interesting or unusual to you?
+
+Introducing the Grammar of Graphics
+========================================================
+
+- ggplot2 stands for Grammar of Graphics
+- The idea behind ggplot2 is that it breaks down plotting into a set of distinct inputs
+- There are two main functions in ggplot2: `qplot()` and `ggplot()`
+- We will focus more on `qplot()`, which stands for "quick plot"
+- `qplot()` is very powerful and has a similar syntax to the base R functions
+
+Remember: Functions in R
+========================================================
+
+- The command `qplot()` is a **function**
+- We will use functions a lot!
+- A function takes one or more inputs (*raw meat*), does something to these inputs (*grinds it up*), and gives an output (*ground meat*)
+
+***
+
+![Meat Grinder](Images/MeatGrinder.jpg)
+
+The Basics of the qplot Function
+========================================================
+class: small-code
+
+- The `qplot()` function has the following syntax:
+
+```
+qplot(x, y, data, color, shape, size, facets, geom, stat)
+```
+
+- `x` and `y`: the variables to plot
+- `data`: your data set
+- `color`,`shape`, and `size`: aesthetic arguments
+- `facets`: optional splitting (or "faceting") into subplots
+- `geom`: the actual visualization of the data (such as `point` or `line`)
+- `stat`: any statistical summaries to be applied 
+
+
+Creating a Histogram: State Populations
+========================================================
+class: small-code
+- Try this **R Code**:
+
+```
+qplot(data=States, x=Population, geom="histogram", bins=10)
+```
+- **Ask yourself**:
+ - How would you describe the distribution of income across states?
+ - What are the inputs into this function?
+ - What happens if you change the number of `bins = 10` to `bins=20` or `bins=5`?
+
+Creating a Density Plot: State Populations
+========================================================
+
+- Try this **R Code**:
+
+```
+qplot(data=States, x=Population, geom="density")
+```
+- **Ask yourself**:
+ - How would you describe the distribution of income across states?
+ - What are the pros/cons of a density plot over a histogram?
+
+Changing the Color 
+========================================================
+class: small-code
+- We use the `I()` function to specify a particular color 
+- The `I()` function tells ggplot2 that this is a color, not an R object in its own right 
+- Try this **R Code**:
+
+```
+qplot(data=States, x=Population, geom="histogram", color=I("red"), bins=20)
+
+qplot(data=States, x=Population, geom="density", color=I("red"))
+```
+- **Ask yourself**:
+ - What is the "color" option doing to our graphs? 
+ - How do you change the color to "orange"?
+
+Changing the Fill
+========================================================
+class: small-code
+- Try this **R Code**:
+
+```
+qplot(data=States, x=Population, geom="histogram", fill=I("red"), bins=20)
+
+qplot(data=States, x=Population, geom="density", fill=I("red"))
+```
+- **Ask yourself**:
+ - What is the "fill" option doing to our graphs? 
+ - How do you change the **fill** to "orange"?
+
+
+Population by McCain/Obama Outcome: Color
+========================================================
+class: small-code
+- We can also specify the color in terms of another variable (typically categorical)
+- Try this **R Code**:
+
+```
+qplot(data=States, x=Population, geom="histogram", color=ObamaMcCain, bins=20)
+
+qplot(data=States, x=Population, geom="density", color=ObamaMcCain)
+```
+- **Ask yourself**:
+ - Were states higher in population more likely to go for Obama or McCain?
+ 
+Population by McCain/Obama Outcome: Fill
+========================================================
+class: small-code
+
+- Try this **R Code**:
+
+```
+qplot(data=States, x=Population, geom="histogram", fill=ObamaMcCain, bins=20)
+
+qplot(data=States, x=Population, geom="density", fill=ObamaMcCain)
+
+```
+- **Ask yourself**:
+ - What is a problem with the "fill" option, particularly for the density plot?
+
+Adding Transparency to the Plots
+========================================================
+class: small-code
+
+- Try this **R Code**:
+
+```
+qplot(data=States, x=Population, geom="histogram", fill=ObamaMcCain, bins=20, alpha=I(0.5))
+
+qplot(data=States, x=Population, geom="density", fill=ObamaMcCain, alpha=I(0.5))
+
+```
+- **Ask yourself**:
+ - What happens if you change `alpha` to 0.2? How about 0.8?
+ - What happens if you change `alpha` to 1? How about 0? 
+
+
+Challenge #1: Educational Differences in the United States
+========================================================
+type: prompt
+incremental: true
+class: small-code
+
+- How does the percent who went to high school differ across regions? 
+- Create a density plot with ggplot2 to answer this question!
+- **R Code** Hint:
+
+```
+qplot(data=States, x=HighSchool, geom="density", fill=Region, alpha=I(0.5))
+```
+
+Check-In #1: Density Plots and Histograms
+========================================================
+type: alert
+
+- At this point you should have:
+ - Loaded a data set into R
+ - Created histograms and density plots
+ - Explored the distribution of a continuous variable by levels of a categorical variable using the "fill" and "color" options
+ - Altered the transparency of graphs using the "alpha" option
+
+
+Part 2: Bar Plots and Faceting
+========================================================
+type: section
+
+Mission #2: Rich State, Poor State, Red State, Blue State
+========================================================
+type: prompt
+
+- What are the number of "rich" states that went for Obama compared to "poor"" states?
+- To answer this question, we'll create bar plots
+
+
+Creating a Categorical Variable
+========================================================
+class: small-code
+
+- We will use the `recode` command from the `car` package
+- You need to install the `car` R package and then load it
+- Try this **R Code**:
+
+```
+install.packages("car")
+library("car")
+
+States$Rich <- car::recode(States$HouseholdIncome, "lo:55000='Poor'; 55001:hi = 'Rich'", as.factor.result=TRUE)
+
+table(States$Rich)
+
+```
+- **Ask yourself**:
+ - What are the advantages and disadvantages of converting a continuous variable to a categorical variable?
+ 
+
+Creating a Bar Plot with a Single Categorical Variable
+========================================================
+
+- Try this **R Code**:
+
+```
+qplot(data=States, x=Rich, geom="bar")
+qplot(data=States, x=Rich, color=Rich, geom="bar")
+qplot(data=States, x=Rich, fill=Rich, geom="bar")
+```
+- **Ask yourself**:
+ - What is the difference between these plots?
+ 
+Creating a Bar Plot with Two Categorical Variables
+========================================================
+
+- Try this **R Code**:
+
+```
+qplot(data=States, x=Rich, color=Region, geom="bar")
+
+qplot(data=States, x=Rich, fill=Region, geom="bar")
+
+```
+- **Ask yourself**:
+ - What is the difference between these plots?
+ - Which graph do you prefer?
+
+Introduction to Faceting
+========================================================
+
+- Faceting entails creating sub-plots using values of one or more other variables
+- These are sometimes called a trellis graphs, since there are many sub-plots that give the appearance of a trellis
+- The syntax is `row_variable ~ column_variable`
+- To create a trellis graph based on a single conditioning variable, use `row_variable ~ . ` or `. ~ column_variable`
+- The `.` indicates that we're not conditioning on the rows or columns, respectively
+
+Faceting with Bar Plots
+========================================================
+class: small-code
+
+- Try this **R Code**:
+
+```
+qplot(data = States, x = Region, fill = Region, geom = "bar", facets = Rich ~ .)
+
+qplot(data = States, x = Region, fill = Region, geom = "bar", facets = . ~ Rich)
+
+qplot(data = States, x =Region, fill = Region, geom = "bar", facets = ObamaMcCain ~ Rich)
+```
+- **Ask yourself**:
+ - How many states are "rich", in the Northeast, and went for McCain? 
+ - How many states are "rich", in the Northeast, and went for Obama?
+
+Improving Plots with Axis Labels
+========================================================
+ 
+- Try this **R Code**:
+
+```
+qplot(data=States, x=Rich, fill=Region, geom="bar", xlab="Income Category", ylab="Number of States")
+```
+
+- We can add axis labels to any qplot, not just bar plots
+
+- Try this **R Code**:
+
+```
+qplot(data=States, x=Population, geom="histogram", bins=10, xlab="Population (in Millions)", ylab="Number of States")
+```
+
+Improving Plots with a Main Title
+========================================================
+
+ 
+- Try this **R Code**:
+
+```
+qplot(data=States, x=Rich, fill=Region, geom="bar", main="Bar Plot of Income Category by Region")
+```
+
+- We can add axis labels to any qplot, not just bar plots
+
+- Try this **R Code**:
+
+```
+qplot(data=States, x=Population, geom="histogram", bins=10, main="Histogram of Population")
+```
+
+Challenge #2: Rich State, Poor State, Red State, Blue State
+========================================================
+type: prompt
+incremental: true
+
+- What are the number of "rich" states that went for Obama compared to "poor" states?
+- Create a bar plot with ggplot2 to answer this question
+
+- **R Code** Hint:
+
+```
+qplot(data = States, x = Rich, fill = Rich, geom = "bar", facets = . ~ ObamaMcCain)
+```
+- Is this finding surprising to you?
+- Be careful with interpreting aggregated data!
+
+Check-In #2: Bar Plots and Faceting
+========================================================
+type: alert
+
+- At this point you should have:
+ - Created a bar plot for a single categorical variable
+ - Created bar plots using multiple categorical variables
+ - Learned how to improve the axis labels and main title of a graph
+
+Part 3: Boxplots
+========================================================
+type: section
+
+Mission #3: A Gap Between Red and Blue States?
+========================================================
+type: prompt
+
+- A lot of researchers and pundits claim that there are fundamental differences between "red" and "blue" states
+- We will look at a number of differences
+- Between those states that went for McCain versus Obama, is there a difference in the percentage who went to college?
+
+
+Creating Box Plots
+========================================================
+class: small-code
+
+- These are also known as box-and-whisker plots
+- They're great for examining the distribution of a continuous variable by levels of a categorical variable
+
+- Try this **R Code**:
+
+```
+qplot(data=States, x=ObamaMcCain, y=HouseholdIncome, geom="boxplot")
+
+qplot(data=States, x=ObamaMcCain, y=GSP, geom="boxplot")
+
+qplot(data=States, x=ObamaMcCain, y=GSP, fill=ObamaMcCain, geom="boxplot")
+```
+
+Adding Points to Boxplots
+========================================================
+
+- We can also overlay the box plots wiht points using the `c()` function
+
+- Try this **R Code**:
+
+```
+qplot(data=States, x=ObamaMcCain, y=HouseholdIncome, geom=c("boxplot","point"))
+
+qplot(data=States, x=ObamaMcCain, y=HouseholdIncome, geom=c("boxplot","jitter"))
+
+```
+- **Ask yourself**:
+ - What is the difference between using `point` versus `jitter`?
+
+Labeling Points
+========================================================
+
+- We can also label points using the `label` option and by specifying `text` as a geom object to be plotted
+- The `size` option controls the size of the text labels
+- Try this **R Code**:
+
+```
+qplot(data=States, x=ObamaMcCain, y=HouseholdIncome, geom="boxplot")
+
+qplot(data=States, x=ObamaMcCain, label=State, y=GSP, geom=c("boxplot","text")) 
+
+```
+- **Ask yourself**:
+ - Which states are outliers?
+ 
+Transforming a Variable
+========================================================
+
+- We can also transform a variable before plotting
+- Often skewed distributions are logged
+
+- Try this **R Code**:
+
+```
+qplot(data=States, x=ObamaMcCain, y=Population, geom="boxplot")
+
+qplot(data=States, x=ObamaMcCain, y=Population, log="y", geom="boxplot") 
+```
+
+Challenge #3: A Gap Between Red and Blue States?
+========================================================
+type: prompt
+incremental: true
+
+- Between those states that went for McCain versus Obama, is there a difference in the percentage that went to college?
+
+- **R Code** Hint:
+
+```
+qplot(data=States, x=ObamaMcCain, y=College, geom=c("boxplot","point"))
+
+qplot(data=States, x=ObamaMcCain, y=College, label=State, geom=c("boxplot","text"))
+```
+
+- Which states have the lowest and highest levels of education for each level of the variable `ObamaMcCain`?
+
+Check-In #3: Box Plots
+========================================================
+type: alert
+
+- At this point you should have:
+ - Generated box plots for a continuous variable across levels of a categorical variable
+ - Placed points over a plot
+ - Placed labels over a plot
+
+
+Part 4: Scatter Plots
+========================================================
+type: section
+
+Mission #4: Explaining State-Level Voting
+========================================================
+type: prompt
+
+- Our data set has several numerical variables, including `HousedholdIncome`, `College`, and `NonWhite`
+- Which of these variables do you think is most closely related to the percentage voting for Obama? 
+
+Scatter Plot of Two Numerical Variables
+========================================================
+class: small-code
+
+- We can also transform a variable before plotting
+- Often skewed distributions are logged
+
+- Try this **R Code**:
+
+```
+qplot(data=States, x=College, y=HouseholdIncome, geom="point")
+cor(States$College, States$HouseholdIncome)
+
+qplot(data=States, x=College, y=NonWhite, geom="point")
+cor(States$College, States$NonWhite)
+```
+
+- **Ask yourself**:
+ - In what way does a scatter plot reveal more information than a correlation?
+
+Adding a Line
+========================================================
+class: small-code
+- We can add a smoothed line over the graph, which includes standard errors to represent sampling uncertainty
+
+- Try this **R Code**:
+
+```
+qplot(data=States, x=College, y=HouseholdIncome, geom=c("point","smooth"))
+
+qplot(data=States, x=College, y=NonWhite, geom=c("point","smooth"))
+```
+- **Ask yourself**:
+ - Are the relationships between these variables roughly linear?
+
+Labeling Points
+========================================================
+class: small-code
+- We can also replace the points with text labels
+
+- Try this **R Code**:
+
+```
+qplot(data=States, x=College, y=HouseholdIncome, label=State, geom=c("smooth", "text"))
+
+qplot(data=States, x=College, y=NonWhite, label=State, geom=c("smooth", "text"))
+```
+- **Ask yourself**:
+ - Which states are outliers? 
+ - Are there any unusual data points?
+
+Challenge #4: Explaining State-Level Voting
+========================================================
+type: prompt
+incremental: true
+class: small-code
+
+- Our data set has several numerical variables, including `HousedholdIncome`, `College`, and `NonWhite`
+- Which of these variables do you think is most predictive of the percentage voting for Obama? 
+
+- **R Code** Hint:
+
+```
+qplot(data=States, x=HouseholdIncome, y=ObamaVote, label=State, geom=c("text","smooth"))
+
+qplot(data=States, x=College, y=ObamaVote, label=State, geom=c("text","smooth"))
+
+qplot(data=States, x=NonWhite, y=ObamaVote, label=State, geom=c("text","smooth"))
+```
+
+Check-In #4: Scatter Plots
+========================================================
+type: alert
+
+- At this point you should have:
+ - Created a scatter plot between two numerical variables
+ - Generated a smoothing line over a scatter plot
+ - Overlaid a scatter plot with text labels
+
+
+5. Spatial Mapping
+========================================================
+type: section
+
+Mission #5: Which States are Red, Which States are Blue?
+========================================================
+type: prompt
+
+- We will answer the question: which states are "red" and which states are "blue"?
+- We can answer this question by looking at the raw data, but a visualization will be much easier to interpret
+- Your goal is to create a map of the United States with information on the voting patterns
+
+
+Grabbing Info on Latitude and Longitude
+========================================================
+
+- The ggplot2 function `map_data()` on latitude and longitude of U.S. states
+
+- Try this **R Code**:
+
+```
+USAMap <- map_data("state")
+str(USAMap)
+View(USAMap)
+```
+- **Ask yourself**:
+ - What kind of information is in this data set?
+ - How might this data set help us create a map?
+ 
+Merging the Two Data Sets
+========================================================
+
+- Our goal is to merge these two data sets, which requires a common variable
+
+- Try this **R Code**:
+
+```
+States$region <- tolower(States$State)
+
+StatesMerged <- merge(x=USAMap, y=States, by = "region")
+
+str(StatesMerged)
+```
+- **Ask yourself**:
+ - How many rows and columns are in `StatesMerged`?
+
+Preparing for Mapmaking
+========================================================
+
+- The new data set `StatesMerged` also has information on latitude, longitude, and a variable called `order`
+- This encodes information on how to draw the state boundaries
+- We want the latitude and longitude values to be correctly sorted, so we will use the `order()` function
+- This just sorts the rows into ascending order so that the map will be drawn correctly
+
+Preparing for Mapmaking (cont.)
+========================================================
+class: small-code
+
+- Try this **R Code**:
+
+```
+StatesMerged <- StatesMerged[order(StatesMerged$order), ]
+```
+- **Ask yourself**:
+ - Are we sorting the rows or columns?
+ - What is the name of the data set and the variable that is being sorted?
+
+Map of Household Income
+========================================================
+class: small-code
+
+- Now we're ready to create a map!
+
+- Try this **R Code**:
+
+```
+qplot(data = StatesMerged, x=long, y=lat, group = group, fill = HouseholdIncome, geom = "polygon")
+
+```
+- **Ask yourself**:
+ - Which states have the highest income? How about the lowest?
+
+More Maps with Differing Colors
+========================================================
+class: small-code
+
+- Let's create some more maps! 
+- We'll use `scale_fill_gradient()` to alter the color gradient
+
+- Try this **R Code**:
+
+```
+qplot(data = StatesMerged, x=long, y=lat, group = group, fill = College, geom = "polygon") + scale_fill_gradient(low="red", high="green")
+```
+- **Ask yourself**:
+ - Which states have the highest income? How about the lowest?
+
+
+Challenge #5:  Which States are Red, Which States are Blue?
+========================================================
+type: prompt
+incremental: false
+class: small-code
+
+- Which states are "red" and which states are "blue"?
+- If you've followed along, then you should already have the data set ready!
+
+- **R Code** Hint:
+
+```
+qplot(data = StatesMerged, x=long, y=lat, group = group, fill = ObamaVote, geom = "polygon") + scale_fill_gradient(low="red", high="blue")
+```
+- **Bonus**:
+ - Wait, why are so many states purple or pink-ish?
+
+Check-In #5: Spatial Mapping
+========================================================
+type: alert
+
+- At this point you should have:
+ - Loaded a data set with spatial information
+ - Merged this data set with another data set
+ - Created a map of U.S. states 
+ - Altered the color scheme of the map
+
+
+Recap of the Workshop
+========================================================
+type: section
+
+- At this point you should have:
+ - Created density plots and histograms
+ - Generated bar plots and box plots
+ - Created scatter plots with smoothing lines and labels
+ - Mapped social science data
+ 
+
+Feedback Survey:
+========================================================
+type: section
+
+- Please fill out this survey so we know how we can improve the workshop
+- Link: https://goo.gl/forms/GbNl7fhCx70IRVpi1
+
+For More Information:
+========================================================
+type: section
+
+URL: [https://compass-workshops.github.io/info/](https://compass-workshops.github.io/info/)
+
+Email List: Send an email to listserv@lists.princeton.edu with "Subscribe COMPASSWORKSHOPS" in the body and all other lines blank, *including the subject*
+
+
+COMPASS Workshops
+========================================================
+title: false
+
+<img src="Images/COMPASSLogo.png" height="168px" width="900px" style="background-color:transparent; border:0px; box-shadow:none;"></img>
+
+- Free, open-source statistical programming and data analysis workshops using R and RStudio
+- Open to everyone with a Princeton ID
+- No programming experience is necessary or expected 
+- Attendees should bring a laptop computer to fully participate in the workshops
+
+Our Website
+========================================================
+
+URL: [https://compass-workshops.github.io/info/](https://compass-workshops.github.io/info/)
+
+<img src="Images/COMPASSWebsite.png" height="497px" width="900px"></img>
+
+
+Our Mailing List
+========================================================
+left: 60%
+
+
+<div class="midcenter" style="margin-left:-490px; margin-top:-250px;">
+<img src="Images/COMPASSEmail.png" height="454px" width="490px"></img>
+</div>
+
+*** 
+
+<div>
+Send an email to listserv@lists.princeton.edu with "Subscribe COMPASSWORKSHOPS" in the body and all other lines blank, *including the subject*.
+</div>
+
+People
+========================================================
+
+- **Teaching Staff**
+ - [Ethan Fosse](http://scholar.harvard.edu/ethanfosse/) (Research Associate, Department of Sociology)
+ - [Yunkyu Sohn](http://www.ysohn.com/) (Research Associate, Department of Politics)
+
+- **Faculty Sponsors**
+ - [Margaret Frye](http://scholar.princeton.edu/mfrye/) (Assistant Professor, Department of Sociology)
+ - [Kosuke Imai](http://imai.princeton.edu/) (Professor, Department of Politics)
+ - [Matthew Salganik](http://www.princeton.edu/~mjs3/) (Professor, Department of Sociology)
